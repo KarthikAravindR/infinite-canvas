@@ -1,0 +1,7 @@
+.wrapper {
+  width: 200px;
+  height: 200px;
+  display: grid;
+  place-items: center;
+  border: 1px solid black;
+}
