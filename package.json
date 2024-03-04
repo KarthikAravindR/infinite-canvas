@@ -10,8 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "16.8.0 || >=17.x",
+    "react-dom": "16.8.0 || >=17.x",
+    "vite-plugin-css-injected-by-js": "^3.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
