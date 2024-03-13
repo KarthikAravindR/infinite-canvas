@@ -1,0 +1,7 @@
+.dotSvgContainer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
