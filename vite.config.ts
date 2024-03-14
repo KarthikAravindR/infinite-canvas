@@ -1,31 +1,23 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), cssInjectedByJsPlugin()],
   build: {
     lib: {
-      entry: "src/main.tsx",
-      name: "react-infinite-canvas",
+      entry: 'src/main.ts',
+      name: 'ReactInfiniteCanvas',
+      fileName: (format) => `react-infinite-canvas.${format}.js`,
     },
     rollupOptions: {
-      // input: "src/main.tsx",
+      external: ['react', 'react-dom'],
       output: {
-        // Output directory
-        dir: "dist",
-        // Entry file names
-        entryFileNames: "[name].js",
-        // // Chunk file names (if any)
-        chunkFileNames: "chunks/[name].js",
-        // // Format of the generated bundle
-        // // format: 'es',
         globals: {
-          react: "React",
-          "react-dom": "ReactDOM",
+          react: 'React',
+          'react-dom': 'ReactDOM',
         },
       },
     },
   },
+  plugins: [react(), cssInjectedByJsPlugin()],
 });

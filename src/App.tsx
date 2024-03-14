@@ -23,7 +23,7 @@ import {
 import { clampValue, getUpdatedNodePosition } from "./helpers/utils";
 
 import styles from "./App.module.css";
-import { ScrollBar } from "./components/ScrollBar/scrollbar";
+import { ScrollBar } from "./components/scrollBar/scrollbar";
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const TIME_TO_WAIT = isSafari ? 600 : 300;

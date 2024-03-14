@@ -1,44 +1,49 @@
 {
   "name": "react-infinite-canvas",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+  "version": "1.0.0",
+  "description": "Your package description",
+  "main": "./dist/react-infinite-canvas.umd.js",
+  "module": "./dist/react-infinite-canvas.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/react-infinite-canvas.es.js",
+      "require": "./dist/react-infinite-canvas.umd.js"
+    }
   },
-  "dependencies": {
-    "react": "16.8.0 || >=17.x",
-    "react-dom": "16.8.0 || >=17.x",
-    "vite-plugin-css-injected-by-js": "^3.4.0"
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "css modules",
+    "vite",
+    "component"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.19",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
     "d3-selection": "^3.0.0",
     "d3-zoom": "^3.0.0",
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite-plugin-css-injected-by-js": "^3.4.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "typescript": "^5.2.2",
     "vite": "^5.1.4"
-  },
-  "peerDependencies": {
-    "react": "16.8.0 || >=17.x",
-    "react-dom": "16.8.0 || >=17.x"
-  },
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/main.js",
-      "require": "./dist/main.js"
-    }
   }
 }
