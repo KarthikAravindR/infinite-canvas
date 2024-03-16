@@ -63,7 +63,7 @@ export interface ReactInfiniteCanvasProps {
     offset?: { x: number; y: number };
     overlap?: boolean;
   }>;
-  onFlowMount?: (functions: ReactInfiniteCanvasHandle) => void;
+  onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
 }
 
 export type ReactInfiniteCanvasHandle = {
@@ -102,7 +102,7 @@ const ReactInfiniteCanvasRenderer = memo(
     customComponents = [],
     renderScrollBar = true,
     scrollBarConfig = {},
-    onFlowMount = () => {},
+    onCanvasMount = () => {},
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<any>(null);
@@ -176,7 +176,7 @@ const ReactInfiniteCanvasRenderer = memo(
           canvasWrapperRef.current?.classList.remove(styles.panning);
         });
 
-        onFlowMount({
+        onCanvasMount({
           scrollNodeToCenter,
           scrollContentHorizontallyCenter,
           fitContentToView,

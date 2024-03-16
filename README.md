@@ -29,7 +29,7 @@ const InfiniteCanvas = () => {
       <div style={{ width: "700px", height: "400px", border: "1px solid red" }}>
         <ReactInfiniteCanvas
           ref={canvasRef}
-          onFlowMount={(mountFunc: ReactInfiniteCanvasHandle) => {
+          onCanvasMount={(mountFunc: ReactInfiniteCanvasHandle) => {
             mountFunc.fitContentToView({ scale: 1 });
           }}
           customComponents={[
@@ -71,4 +71,4 @@ ReactDOM.render(<InfiniteCanvas />, document.getElementById("root"));
 | renderScrollBar  | boolean         | true                                | a custom built scroll-bar will be rendered on canvas                                             |
 | scrollBarConfig   | object          | { startingPosition: { x: 0, y: 0}, offset: { x: 0, y: 0}, color: "grey", thickness: "8px", minSize: "15px }                                                                    | To style the scrollbar to your preference |
 | customComponents | object          | ""                                  | An array of components you can pass to render on canvas at any position |
-| onFlowMount      | function        | ""                                  | A function that is triggered once the canvas is mounted |
+| onCanvasMount    | function        | ""                                  | A function that is triggered once the canvas is mounted |
