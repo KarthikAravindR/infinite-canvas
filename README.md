@@ -6,6 +6,7 @@ An Infinite Canvas Component for React where you can place your component anywhe
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [API](#api)
 
 ## Installation
 
