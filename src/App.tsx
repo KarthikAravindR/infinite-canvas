@@ -230,10 +230,12 @@ const ReactInfiniteCanvasRenderer = memo(
     const fitContentToView = useCallback(
       function fitContentHandler({
         duration = 500,
+        offset = { x: 0, y: 0 },
         scale,
         maxZoomLimit = ZOOM_CONFIGS.FIT_TO_VIEW_MAX_ZOOM,
       }: {
         duration?: number;
+        offset?: { x: number; y: number };
         scale?: number;
         maxZoomLimit?: number;
       }) {
@@ -262,8 +264,8 @@ const ReactInfiniteCanvasRenderer = memo(
 
             // below code calculates the translateX and translateY values to
             // center the content horizontally and fit content vertically
-            const translateX = (containerWidth - contentWidth * newScale) / 2;
-            const translateY = 0;
+            const translateX = ((containerWidth - contentWidth * newScale) / 2) + offset.x;
+            const translateY = offset.y;
 
             const newTransform = zoomIdentity
               .translate(translateX, translateY)
