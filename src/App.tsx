@@ -37,13 +37,12 @@ const ZOOM_KEY_CODES = {
   FIT_TO_HUNDRED: 49,
 };
 
-interface ReactWorkflowProps {
+export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
-  ref: any;
-  initialZoom?: number;
+  ref?: any;
   minZoom?: number;
   maxZoom?: number;
-  fitToViewMaxLimit?: number;
+  panOnScroll?: boolean;
   renderScrollBar?: boolean;
   scrollBarConfig?: {
     startingPosition?: {
@@ -64,138 +63,130 @@ interface ReactWorkflowProps {
     offset?: { x: number; y: number };
     overlap?: boolean;
   }>;
-  onFlowMount?: (functions: ReactWorkflowHandle) => void;
+  onFlowMount?: (functions: ReactInfiniteCanvasHandle) => void;
 }
 
-export type ReactWorkflowHandle = {
+export type ReactInfiniteCanvasHandle = {
   scrollNodeToCenter: (options: any) => void;
   scrollContentHorizontallyCenter: (options: any) => void;
   fitContentToView: (options: any) => void;
 };
 
-interface ReactWorkflowRendererProps extends ReactWorkflowProps {
+interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
   innerRef: any;
 }
 
-export const ReactInfiniteCanvas: React.FC<ReactWorkflowProps> = ({
-  children,
-  ref,
-  ...restProps
-}) => {
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
-  return (
-    <ReactWorkflowRenderer innerRef={ref} {...restProps}>
-      <div
-        ref={wrapperRef}
-        style={{ width: "max-content", height: "max-content" }}
-      >
-        {children}
-      </div>
-    </ReactWorkflowRenderer>
-  );
-};
+export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
+  forwardRef(({ children, ...restProps }, ref) => {
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
+    return (
+      <ReactInfiniteCanvasRenderer innerRef={ref} {...restProps}>
+        <div
+          ref={wrapperRef}
+          style={{ width: "max-content", height: "max-content" }}
+        >
+          {children}
+        </div>
+      </ReactInfiniteCanvasRenderer>
+    );
+  });
 
-const ReactWorkflowRenderer = memo(
-  forwardRef(
-    ({
-      children,
-      innerRef: ref,
-      minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
-      maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
-      fitToViewMaxLimit = ZOOM_CONFIGS.DEFAULT_MAX_INITIAL_ZOOM,
-      onFlowMount = () => {},
-      customComponents = [],
-      renderScrollBar = true,
-      scrollBarConfig = {},
-    }: ReactWorkflowRendererProps) => {
-      const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
-      const canvasWrapperBounds = useRef<any>(null);
-      const canvasRef = useRef<SVGAElement | any>(null);
-      const zoomContainerRef = useRef<any>(null);
-      const scrollBarRef = useRef<any>(null);
-      const flowRendererRef = children.ref;
-      const isUserPressed = useRef<boolean | null>(null);
+const ReactInfiniteCanvasRenderer = memo(
+  ({
+    children,
+    innerRef: ref,
+    minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
+    maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
+    panOnScroll = true,
+    customComponents = [],
+    renderScrollBar = true,
+    scrollBarConfig = {},
+    onFlowMount = () => {},
+  }: ReactInfiniteCanvasRendererProps) => {
+    const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
+    const canvasWrapperBounds = useRef<any>(null);
+    const canvasRef = useRef<SVGAElement | any>(null);
+    const zoomContainerRef = useRef<any>(null);
+    const scrollBarRef = useRef<any>(null);
+    const flowRendererRef = children.ref;
+    const isUserPressed = useRef<boolean | null>(null);
 
-      const d3Zoom = useMemo(() => {
-        return zoom<SVGAElement, unknown>().scaleExtent([minZoom, maxZoom]);
-      }, [maxZoom, minZoom]);
-      const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
+    const d3Zoom = useMemo(() => {
+      return zoom<SVGAElement, unknown>().scaleExtent([minZoom, maxZoom]);
+    }, [maxZoom, minZoom]);
+    const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
 
-      const [zoomTransform, setZoomTransform] = useState({
-        translateX: 0,
-        translateY: 0,
-        scale: 1,
-      });
+    const [zoomTransform, setZoomTransform] = useState({
+      translateX: 0,
+      translateY: 0,
+      scale: 1,
+    });
 
-      useImperativeHandle(ref, () => ({
-        scrollNodeToCenter,
-        scrollContentHorizontallyCenter,
-        fitContentToView,
-      }));
+    useImperativeHandle(ref, () => ({
+      scrollNodeToCenter,
+      scrollContentHorizontallyCenter,
+      fitContentToView,
+    }));
 
-      useEffect(
-        function zoomAndPanHandler() {
-          d3Selection.current = select(canvasRef.current).call(d3Zoom);
-          const zoomNode = select(zoomContainerRef.current);
-          canvasWrapperBounds.current = canvasWrapperRef.current
-            ? canvasWrapperRef.current.getBoundingClientRect()
-            : {};
+    useEffect(
+      function zoomAndPanHandler() {
+        d3Selection.current = select(canvasRef.current).call(d3Zoom);
+        const zoomNode = select(zoomContainerRef.current);
+        canvasWrapperBounds.current = canvasWrapperRef.current
+          ? canvasWrapperRef.current.getBoundingClientRect()
+          : {};
 
-          d3Zoom
-            .filter((event: { type: string; ctrlKey: any }) => {
-              if (event.type === "mousedown" && !isUserPressed.current) {
-                isUserPressed.current = true;
-                onMouseDown();
+        d3Zoom
+          .filter((event: { type: string; ctrlKey: any }) => {
+            if (event.type === "mousedown" && !isUserPressed.current) {
+              isUserPressed.current = true;
+              onMouseDown();
+            }
+
+            return event.ctrlKey || event.type !== "wheel";
+          })
+          .on(
+            "zoom",
+            (event: {
+              sourceEvent: { ctrlKey: boolean };
+              type: string;
+              transform: any;
+            }) => {
+              if (
+                event.sourceEvent?.ctrlKey === false &&
+                event.type === "zoom"
+              ) {
+                canvasWrapperRef.current?.classList.add(styles.panning);
               }
-
-              return event.ctrlKey || event.type !== "wheel";
-            })
-            .on(
-              "zoom",
-              (event: {
-                sourceEvent: { ctrlKey: boolean };
-                type: string;
-                transform: any;
-              }) => {
-                if (
-                  event.sourceEvent?.ctrlKey === false &&
-                  event.type === "zoom"
-                ) {
-                  canvasWrapperRef.current?.classList.add(styles.panning);
-                }
-                const zoomTransform = event.transform;
-                const {
-                  x: translateX,
-                  y: translateY,
-                  k: scale,
-                } = zoomTransform;
-                const div = zoomContainerRef.current;
-                setZoomTransform({ translateX, translateY, scale });
-                if (isSafari && div) {
-                  div.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-                } else {
-                  zoomNode.attr("transform", zoomTransform);
-                }
+              const zoomTransform = event.transform;
+              const { x: translateX, y: translateY, k: scale } = zoomTransform;
+              const div = zoomContainerRef.current;
+              setZoomTransform({ translateX, translateY, scale });
+              if (isSafari && div) {
+                div.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+              } else {
+                zoomNode.attr("transform", zoomTransform);
               }
-            );
+            }
+          );
 
-          d3Zoom.on("end", () => {
-            isUserPressed.current = false;
-            canvasWrapperRef.current?.classList.remove(styles.panning);
-          });
-          
-          onFlowMount({
-            scrollNodeToCenter,
-            scrollContentHorizontallyCenter,
-            fitContentToView,
-          });
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        []
-      );
+        d3Zoom.on("end", () => {
+          isUserPressed.current = false;
+          canvasWrapperRef.current?.classList.remove(styles.panning);
+        });
 
-      d3Selection.current
+        onFlowMount({
+          scrollNodeToCenter,
+          scrollContentHorizontallyCenter,
+          fitContentToView,
+        });
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      []
+    );
+
+    d3Selection.current
       .call(zoom)
       // Override the default wheel event listener
       .on(
@@ -207,385 +198,376 @@ const ReactWorkflowRenderer = memo(
           deltaX: any;
         }) => {
           event.preventDefault();
-          const currentZoom =
-            d3Selection.current.property("__zoom").k || 1;
+          const currentZoom = d3Selection.current.property("__zoom").k || 1;
 
-          if (event.ctrlKey) {
-            // Use mouse wheel + ctrl key, or track pad pinch to zoom.
-            const nextZoom =
-              currentZoom * Math.pow(2, -event.deltaY * 0.01);
-            d3Zoom.scaleTo(
-              d3Selection.current,
-              nextZoom,
-              pointer(event)
-            );
-          } else {
+          if (panOnScroll && !event.ctrlKey) {
             const scrollDeltaValue = {
               deltaX: event.deltaX,
               deltaY: event.deltaY,
             };
-            scrollBarRef.current?.onScrollDeltaChangeHandler(
-              scrollDeltaValue
-            );
+            scrollBarRef.current?.onScrollDeltaChangeHandler(scrollDeltaValue);
             onScrollDeltaHandler(scrollDeltaValue);
+          } else {
+            const nextZoom = currentZoom * Math.pow(2, -event.deltaY * 0.01);
+            d3Zoom.scaleTo(d3Selection.current, nextZoom, pointer(event));
           }
         },
-        { passive: false, capture: true}
+        { passive: false, capture: true }
       );
 
-      const onScrollDeltaHandler = (scrollDelta: {
-        deltaX: number;
-        deltaY: number;
-      }) => {
-        const currentZoom = d3Selection.current.property("__zoom").k || 1;
-        d3Zoom.translateBy(
-          d3Selection.current,
-          -(scrollDelta.deltaX / currentZoom),
-          -(scrollDelta.deltaY / currentZoom)
-        );
-      };
-
-      const fitContentToView = useCallback(
-        function fitContentHandler({
-          duration = 500,
-          scale,
-        }: {
-          duration?: number;
-          scale?: number;
-        }) {
-          requestIdleCallback(
-            () => {
-              if (!flowRendererRef.current) return;
-              const canvasNode = select(canvasRef.current);
-              const contentBounds =
-                flowRendererRef.current.getBoundingClientRect();
-              const currentZoom = d3Selection.current.property("__zoom").k || 1;
-              const containerBounds =
-                canvasRef.current?.getBoundingClientRect();
-              const { width: containerWidth = 0, height: containerHeight = 0 } =
-                containerBounds || {};
-              const scaleDiff =
-                currentZoom > 1 ? 1 * currentZoom : 1 / currentZoom;
-              const contentWidth = contentBounds.width * scaleDiff;
-              const contentHeight = contentBounds.height * scaleDiff;
-              const heightRatio = containerHeight / contentHeight;
-              const newScale =
-                scale ??
-                clampValue({
-                  value: Math.min(fitToViewMaxLimit, heightRatio),
-                  min: minZoom,
-                  max: maxZoom,
-                });
-
-              // below code calculates the translateX and translateY values to
-              // center the content horizontally and fit content vertically
-              const translateX = (containerWidth - contentWidth * newScale) / 2;
-              const translateY = 0;
-
-              const newTransform = zoomIdentity
-                .translate(translateX, translateY)
-                .scale(newScale);
-              setZoomTransform({ translateX, translateY, scale: newScale });
-              // scrollBarRef.current?.resetScrollPos();
-
-              canvasNode
-                // @ts-ignore
-                .transition()
-                .duration(duration)
-                .call(d3Zoom.transform, newTransform);
-            },
-            { timeout: TIME_TO_WAIT }
-          );
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [fitToViewMaxLimit, maxZoom, minZoom]
+    const onScrollDeltaHandler = (scrollDelta: {
+      deltaX: number;
+      deltaY: number;
+    }) => {
+      const currentZoom = d3Selection.current.property("__zoom").k || 1;
+      d3Zoom.translateBy(
+        d3Selection.current,
+        -(scrollDelta.deltaX / currentZoom),
+        -(scrollDelta.deltaY / currentZoom)
       );
+    };
 
-      const scrollNodeToCenter = ({
-        nodeElement,
-        offset = { x: 0, y: 0 },
+    const fitContentToView = useCallback(
+      function fitContentHandler({
+        duration = 500,
         scale,
-        shouldUpdateMaxScale = true,
-        maxScale,
-        transitionDuration = 300,
-        position = SCROLL_NODE_POSITIONS.TOP_CENTER,
+        maxZoomLimit = ZOOM_CONFIGS.FIT_TO_VIEW_MAX_ZOOM,
       }: {
-        nodeElement?: HTMLElement;
-        offset?: { x: number; y: number };
+        duration?: number;
         scale?: number;
-        shouldUpdateMaxScale?: boolean;
-        maxScale?: number;
-        transitionDuration?: number;
-        position?: string;
-      }) => {
+        maxZoomLimit?: number;
+      }) {
         requestIdleCallback(
           () => {
-            if (!nodeElement) return;
-            const zoomLevel = d3Selection.current.property("__zoom");
-            const {
-              k: currentScale,
-              x: currentTranslateX,
-              y: currentTranslateY,
-            } = zoomLevel;
+            if (!flowRendererRef.current) return;
             const canvasNode = select(canvasRef.current);
+            const contentBounds =
+              flowRendererRef.current.getBoundingClientRect();
+            const currentZoom = d3Selection.current.property("__zoom").k || 1;
+            const containerBounds = canvasRef.current?.getBoundingClientRect();
+            const { width: containerWidth = 0, height: containerHeight = 0 } =
+              containerBounds || {};
+            const scaleDiff =
+              currentZoom > 1 ? 1 * currentZoom : 1 / currentZoom;
+            const contentWidth = contentBounds.width * scaleDiff;
+            const contentHeight = contentBounds.height * scaleDiff;
+            const heightRatio = containerHeight / contentHeight;
+            const newScale =
+              scale ??
+              clampValue({
+                value: Math.min(maxZoomLimit, heightRatio),
+                min: minZoom,
+                max: maxZoom,
+              });
 
-            const getUpdatedScale = () => {
-              const getClampedScale = (scale: number) => {
-                if (!maxScale) return scale;
-                return Math.min(maxScale, scale);
-              };
+            // below code calculates the translateX and translateY values to
+            // center the content horizontally and fit content vertically
+            const translateX = (containerWidth - contentWidth * newScale) / 2;
+            const translateY = 0;
 
-              if (!scale) return getClampedScale(currentScale);
-              let updatedScale = scale;
-              if (shouldUpdateMaxScale) {
-                updatedScale = Math.max(scale, currentScale);
-              }
-              return getClampedScale(updatedScale);
+            const newTransform = zoomIdentity
+              .translate(translateX, translateY)
+              .scale(newScale);
+            setZoomTransform({ translateX, translateY, scale: newScale });
+            scrollBarRef.current?.resetScrollPos();
+
+            canvasNode
+              // @ts-ignore
+              .transition()
+              .duration(duration)
+              .call(d3Zoom.transform, newTransform);
+          },
+          { timeout: TIME_TO_WAIT }
+        );
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [maxZoom, minZoom]
+    );
+
+    const scrollNodeToCenter = ({
+      nodeElement,
+      offset = { x: 0, y: 0 },
+      scale,
+      shouldUpdateMaxScale = true,
+      maxScale,
+      transitionDuration = 300,
+      position = SCROLL_NODE_POSITIONS.TOP_CENTER,
+    }: {
+      nodeElement?: HTMLElement;
+      offset?: { x: number; y: number };
+      scale?: number;
+      shouldUpdateMaxScale?: boolean;
+      maxScale?: number;
+      transitionDuration?: number;
+      position?: string;
+    }) => {
+      requestIdleCallback(
+        () => {
+          if (!nodeElement) return;
+          const zoomLevel = d3Selection.current.property("__zoom");
+          const {
+            k: currentScale,
+            x: currentTranslateX,
+            y: currentTranslateY,
+          } = zoomLevel;
+          const canvasNode = select(canvasRef.current);
+
+          const getUpdatedScale = () => {
+            const getClampedScale = (scale: number) => {
+              if (!maxScale) return scale;
+              return Math.min(maxScale, scale);
             };
 
-            const updatedScale = getUpdatedScale();
-            const isDifferentScale = updatedScale !== currentScale;
-
-            // calculating svgBounds again because its width might be different if rightPanel is opened
-            const svgBounds = canvasRef.current.getBoundingClientRect();
-            const nodeBounds = nodeElement.getBoundingClientRect();
-            const { updatedX, updatedY } = getUpdatedNodePosition({
-              position,
-              svgBounds,
-              nodeBounds,
-              currentTranslateX,
-              currentTranslateY,
-              currentScale,
-              updatedScale,
-              customOffset: { x: offset.x, y: offset.y },
-            });
-
-            const newTransform = zoomIdentity
-              .translate(updatedX, updatedY)
-              .scale(currentScale);
-
-            canvasNode
-              // @ts-ignore
-              .transition()
-              .duration(transitionDuration)
-              .call(d3Zoom.transform, newTransform);
-
-            if (isDifferentScale) {
-              setTimeout(() => {
-                d3Zoom.scaleTo(
-                  // @ts-ignore
-                  canvasNode.transition().duration(transitionDuration),
-                  updatedScale
-                );
-              }, transitionDuration + 100);
+            if (!scale) return getClampedScale(currentScale);
+            let updatedScale = scale;
+            if (shouldUpdateMaxScale) {
+              updatedScale = Math.max(scale, currentScale);
             }
-          },
-          { timeout: TIME_TO_WAIT }
-        );
-      };
-
-      const scrollContentHorizontallyCenter = ({
-        offset = 0,
-        transitionDuration = 300,
-      }: {
-        offset?: number;
-        transitionDuration?: number;
-      }) => {
-        if (!flowRendererRef.current) return;
-        requestIdleCallback(
-          () => {
-            const zoomLevel = d3Selection.current.property("__zoom");
-            const { k: scale, y: translateY } = zoomLevel;
-            const canvasNode = select(canvasRef.current);
-
-            // calculating svgBounds again because its width might be different if rightPanel is opened
-            const svgBounds = canvasRef.current.getBoundingClientRect();
-            const nodeBounds = flowRendererRef.current.getBoundingClientRect();
-            const scaleDiff = scale > 1 ? 1 * scale : 1 / scale;
-            const nodeBoundsWidth = nodeBounds.width * scaleDiff;
-
-            const updatedX =
-              (svgBounds.width - nodeBoundsWidth * scale) / 2 - offset;
-
-            setZoomTransform({
-              ...zoomTransform,
-              translateX: updatedX,
-            });
-
-            const newTransform = zoomIdentity
-              .translate(updatedX, translateY)
-              .scale(scale);
-
-            canvasNode
-              // @ts-ignore
-              .transition()
-              .duration(transitionDuration)
-              .call(d3Zoom.transform, newTransform);
-          },
-          { timeout: TIME_TO_WAIT }
-        );
-      };
-
-      const onActionClick = useCallback(
-        function actionClickHandler(actionId: string) {
-          const canvasNode = select(canvasRef.current);
-          const { k: currentScale } = d3Selection.current.property("__zoom");
-          switch (actionId) {
-            case ZOOM_CONTROLS.FIT_TO_VIEW:
-              fitContentToView({});
-              break;
-
-            case ZOOM_CONTROLS.FIT_TO_HUNDRED:
-              d3Zoom.scaleTo(
-                // @ts-ignore
-                canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-                1
-              );
-              break;
-
-            case ZOOM_CONTROLS.ZOOM_IN:
-              d3Zoom.scaleTo(
-                // @ts-ignore
-                canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-                currentScale + ZOOM_CONFIGS.ZOOM_RATIO
-              );
-              break;
-
-            case ZOOM_CONTROLS.ZOOM_OUT:
-              d3Zoom.scaleTo(
-                // @ts-ignore
-                canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-                currentScale - ZOOM_CONFIGS.ZOOM_RATIO
-              );
-              break;
-
-            default:
-              break;
-          }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [fitContentToView]
-      );
-
-      useEffect(
-        function zoomShortcutHandler() {
-          function onKeyDownHandler(e: KeyboardEvent) {
-            const cmdPressed = e.metaKey || e.ctrlKey;
-            if (!Object.values(ZOOM_KEY_CODES).includes(e.which) || !cmdPressed)
-              return;
-            e.preventDefault();
-            switch (e.which) {
-              case ZOOM_KEY_CODES.ZOOM_IN:
-              case ZOOM_KEY_CODES.ZOOM_IN_2:
-                onActionClick(ZOOM_CONTROLS.ZOOM_IN);
-                break;
-              case ZOOM_KEY_CODES.ZOOM_OUT:
-              case ZOOM_KEY_CODES.ZOOM_OUT_2:
-                onActionClick(ZOOM_CONTROLS.ZOOM_OUT);
-                break;
-              case ZOOM_KEY_CODES.FIT_TO_VIEW:
-                onActionClick(ZOOM_CONTROLS.FIT_TO_VIEW);
-                break;
-              case ZOOM_KEY_CODES.FIT_TO_HUNDRED:
-                onActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED);
-                break;
-              default:
-                return;
-            }
-          }
-
-          window.addEventListener("keydown", onKeyDownHandler);
-          return () => {
-            window.removeEventListener("keydown", onKeyDownHandler);
+            return getClampedScale(updatedScale);
           };
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-        },
-        [onActionClick]
-      );
 
-      const onMouseDown = () => {
-        const bodyElement = document.body;
-        if (bodyElement) {
-          const mouseDownEvent = new MouseEvent("mousedown", {
-            bubbles: true,
-            cancelable: true,
-            view: window,
+          const updatedScale = getUpdatedScale();
+          const isDifferentScale = updatedScale !== currentScale;
+
+          // calculating svgBounds again because its width might be different if rightPanel is opened
+          const svgBounds = canvasRef.current.getBoundingClientRect();
+          const nodeBounds = nodeElement.getBoundingClientRect();
+          const { updatedX, updatedY } = getUpdatedNodePosition({
+            position,
+            svgBounds,
+            nodeBounds,
+            currentTranslateX,
+            currentTranslateY,
+            currentScale,
+            updatedScale,
+            customOffset: { x: offset.x, y: offset.y },
           });
 
-          // Dispatch the mousedown event on the body element
-          bodyElement.dispatchEvent(mouseDownEvent);
-        }
-      };
+          const newTransform = zoomIdentity
+            .translate(updatedX, updatedY)
+            .scale(currentScale);
 
-      const getContainerOffset = useCallback(function offsetHandler(
-        isVertical = true
-      ) {
-        const { x, y } = canvasWrapperBounds.current;
-        return isVertical ? y : x;
-      },
-      []);
+          canvasNode
+            // @ts-ignore
+            .transition()
+            .duration(transitionDuration)
+            .call(d3Zoom.transform, newTransform);
 
-      return (
-        <div className={styles.container}>
-          <div ref={canvasWrapperRef} className={styles.canvasWrapper}>
-            {isSafari ? (
-              <div ref={canvasRef} className={styles.canvas}>
-                <div ref={zoomContainerRef}>
-                  <div className={styles.contentWrapper}>{children}</div>
-                </div>
-              </div>
-            ) : (
-              <svg ref={canvasRef} className={styles.canvas}>
-                <g ref={zoomContainerRef}>
-                  <foreignObject
-                    x={ZOOM_CONFIGS.INITIAL_POSITION_X}
-                    y={ZOOM_CONFIGS.INITIAL_POSITION_Y}
-                    width={ZOOM_CONFIGS.DEFAULT_LAYOUT}
-                    height={ZOOM_CONFIGS.DEFAULT_LAYOUT}
-                  >
-                    {children}
-                  </foreignObject>
-                </g>
-              </svg>
-            )}
-          </div>
-          <Background maxZoom={maxZoom} zoomTransform={zoomTransform} />
-          {renderScrollBar && canvasWrapperRef.current && (
-            <ScrollBar
-              ref={scrollBarRef}
-              scale={zoomTransform.scale}
-              startingPosition={scrollBarConfig.startingPosition}
-              offset={scrollBarConfig.offset}
-              color={scrollBarConfig.color}
-              thickness={scrollBarConfig.thickness}
-              minSize={scrollBarConfig.minSize}
-              verticalOffsetHeight={canvasWrapperRef.current.offsetHeight}
-              horizontalOffsetWidth={canvasWrapperRef.current.offsetWidth}
-              getContainerOffset={getContainerOffset}
-              onScrollDeltaHandler={onScrollDeltaHandler}
-            />
-          )}
-          {customComponents.map((config, index) => {
-            const {
-              component,
-              position = COMPONENT_POSITIONS.BOTTOM_LEFT,
-              offset = { x: 0, y: 0 },
-              overlap = true,
-            } = config;
-            return (
-              <CustomComponentWrapper
-                key={index}
-                component={component}
-                position={position}
-                offset={offset}
-                overlap={overlap}
-              />
-            );
-          })}
-        </div>
+          if (isDifferentScale) {
+            setTimeout(() => {
+              d3Zoom.scaleTo(
+                // @ts-ignore
+                canvasNode.transition().duration(transitionDuration),
+                updatedScale
+              );
+            }, transitionDuration + 100);
+          }
+        },
+        { timeout: TIME_TO_WAIT }
       );
-    }
-  )
+    };
+
+    const scrollContentHorizontallyCenter = ({
+      offset = 0,
+      transitionDuration = 300,
+    }: {
+      offset?: number;
+      transitionDuration?: number;
+    }) => {
+      if (!flowRendererRef.current) return;
+      requestIdleCallback(
+        () => {
+          const zoomLevel = d3Selection.current.property("__zoom");
+          const { k: scale, y: translateY } = zoomLevel;
+          const canvasNode = select(canvasRef.current);
+
+          // calculating svgBounds again because its width might be different if rightPanel is opened
+          const svgBounds = canvasRef.current.getBoundingClientRect();
+          const nodeBounds = flowRendererRef.current.getBoundingClientRect();
+          const scaleDiff = scale > 1 ? 1 * scale : 1 / scale;
+          const nodeBoundsWidth = nodeBounds.width * scaleDiff;
+
+          const updatedX =
+            (svgBounds.width - nodeBoundsWidth * scale) / 2 - offset;
+
+          setZoomTransform({
+            ...zoomTransform,
+            translateX: updatedX,
+          });
+
+          const newTransform = zoomIdentity
+            .translate(updatedX, translateY)
+            .scale(scale);
+
+          canvasNode
+            // @ts-ignore
+            .transition()
+            .duration(transitionDuration)
+            .call(d3Zoom.transform, newTransform);
+        },
+        { timeout: TIME_TO_WAIT }
+      );
+    };
+
+    const onActionClick = useCallback(
+      function actionClickHandler(actionId: string) {
+        const canvasNode = select(canvasRef.current);
+        const { k: currentScale } = d3Selection.current.property("__zoom");
+        switch (actionId) {
+          case ZOOM_CONTROLS.FIT_TO_VIEW:
+            fitContentToView({});
+            break;
+
+          case ZOOM_CONTROLS.FIT_TO_HUNDRED:
+            d3Zoom.scaleTo(
+              // @ts-ignore
+              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
+              1
+            );
+            break;
+
+          case ZOOM_CONTROLS.ZOOM_IN:
+            d3Zoom.scaleTo(
+              // @ts-ignore
+              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
+              currentScale + ZOOM_CONFIGS.ZOOM_RATIO
+            );
+            break;
+
+          case ZOOM_CONTROLS.ZOOM_OUT:
+            d3Zoom.scaleTo(
+              // @ts-ignore
+              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
+              currentScale - ZOOM_CONFIGS.ZOOM_RATIO
+            );
+            break;
+
+          default:
+            break;
+        }
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [fitContentToView]
+    );
+
+    useEffect(
+      function zoomShortcutHandler() {
+        function onKeyDownHandler(e: KeyboardEvent) {
+          const cmdPressed = e.metaKey || e.ctrlKey;
+          if (!Object.values(ZOOM_KEY_CODES).includes(e.which) || !cmdPressed)
+            return;
+          e.preventDefault();
+          switch (e.which) {
+            case ZOOM_KEY_CODES.ZOOM_IN:
+            case ZOOM_KEY_CODES.ZOOM_IN_2:
+              onActionClick(ZOOM_CONTROLS.ZOOM_IN);
+              break;
+            case ZOOM_KEY_CODES.ZOOM_OUT:
+            case ZOOM_KEY_CODES.ZOOM_OUT_2:
+              onActionClick(ZOOM_CONTROLS.ZOOM_OUT);
+              break;
+            case ZOOM_KEY_CODES.FIT_TO_VIEW:
+              onActionClick(ZOOM_CONTROLS.FIT_TO_VIEW);
+              break;
+            case ZOOM_KEY_CODES.FIT_TO_HUNDRED:
+              onActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED);
+              break;
+            default:
+              return;
+          }
+        }
+
+        window.addEventListener("keydown", onKeyDownHandler);
+        return () => {
+          window.removeEventListener("keydown", onKeyDownHandler);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      },
+      [onActionClick]
+    );
+
+    const onMouseDown = () => {
+      const bodyElement = document.body;
+      if (bodyElement) {
+        const mouseDownEvent = new MouseEvent("mousedown", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+        });
+
+        // Dispatch the mousedown event on the body element
+        bodyElement.dispatchEvent(mouseDownEvent);
+      }
+    };
+
+    const getContainerOffset = useCallback(function offsetHandler(
+      isVertical = true
+    ) {
+      const { x, y } = canvasWrapperBounds.current;
+      return isVertical ? y : x;
+    },
+    []);
+
+    return (
+      <div className={styles.container}>
+        <div ref={canvasWrapperRef} className={styles.canvasWrapper}>
+          {isSafari ? (
+            <div ref={canvasRef} className={styles.canvas}>
+              <div ref={zoomContainerRef}>
+                <div className={styles.contentWrapper}>{children}</div>
+              </div>
+            </div>
+          ) : (
+            <svg ref={canvasRef} className={styles.canvas}>
+              <g ref={zoomContainerRef}>
+                <foreignObject
+                  x={ZOOM_CONFIGS.INITIAL_POSITION_X}
+                  y={ZOOM_CONFIGS.INITIAL_POSITION_Y}
+                  width={ZOOM_CONFIGS.DEFAULT_LAYOUT}
+                  height={ZOOM_CONFIGS.DEFAULT_LAYOUT}
+                >
+                  {children}
+                </foreignObject>
+              </g>
+            </svg>
+          )}
+        </div>
+        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} />
+        {renderScrollBar && canvasWrapperRef.current && (
+          <ScrollBar
+            ref={scrollBarRef}
+            scale={zoomTransform.scale}
+            startingPosition={scrollBarConfig.startingPosition}
+            offset={scrollBarConfig.offset}
+            color={scrollBarConfig.color}
+            thickness={scrollBarConfig.thickness}
+            minSize={scrollBarConfig.minSize}
+            verticalOffsetHeight={canvasWrapperRef.current.offsetHeight}
+            horizontalOffsetWidth={canvasWrapperRef.current.offsetWidth}
+            getContainerOffset={getContainerOffset}
+            onScrollDeltaHandler={onScrollDeltaHandler}
+          />
+        )}
+        {customComponents.map((config, index) => {
+          const {
+            component,
+            position = COMPONENT_POSITIONS.BOTTOM_LEFT,
+            offset = { x: 0, y: 0 },
+            overlap = true,
+          } = config;
+          return (
+            <CustomComponentWrapper
+              key={index}
+              component={component}
+              position={position}
+              offset={offset}
+              overlap={overlap}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 );
 
 const CustomComponentWrapper = ({

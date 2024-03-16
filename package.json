@@ -1,49 +1,53 @@
 {
   "name": "react-infinite-canvas",
-  "private": true,
   "version": "1.0.0",
-  "description": "Your package description",
+  "description": "An Infinite Canvas Component for React where you can place your component anywhere on the canvas with zoom in, zoom out and panning functionality. It also supports custom components to control the canvas.",
   "main": "./dist/react-infinite-canvas.umd.js",
   "module": "./dist/react-infinite-canvas.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/react-infinite-canvas.es.js",
-      "require": "./dist/react-infinite-canvas.umd.js"
-    }
-  },
+  "types": "./dist/main.d.ts",
   "scripts": {
     "build": "vite build",
     "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
+    "infinite",
+    "canvas",
+    "workflow",
+    "diagram",
+    "space",
     "react",
     "typescript",
     "css modules",
     "vite",
     "component"
   ],
-  "author": "Your Name",
+  "author": "Karthik Aravind",
   "license": "MIT",
   "peerDependencies": {
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },
   "devDependencies": {
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "d3-selection": "^3.0.0",
-    "d3-zoom": "^3.0.0",
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite-plugin-css-injected-by-js": "^3.4.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "typescript": "^5.2.2",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vite-plugin-css-injected-by-js": "^3.4.0",
+    "vite-plugin-dts": "^3.7.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
   }
 }
