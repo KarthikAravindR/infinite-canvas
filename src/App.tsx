@@ -62,14 +62,17 @@ export interface ReactInfiniteCanvasProps {
     position?: string;
     offset?: { x: number; y: number };
     overlap?: boolean;
+    className?: string;
   }>;
   onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
 }
 
 export type ReactInfiniteCanvasHandle = {
   scrollNodeToCenter: (options: any) => void;
+  scrollNodeHandler: (options: any) => void;
   scrollContentHorizontallyCenter: (options: any) => void;
   fitContentToView: (options: any) => void;
+  getCanvasState: () => any;
 };
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
@@ -124,9 +127,15 @@ const ReactInfiniteCanvasRenderer = memo(
     });
 
     useImperativeHandle(ref, () => ({
-      scrollNodeToCenter,
+      scrollNodeToCenter: (options: any) =>
+        scrollNodeHandler({
+          ...options,
+          position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
+        }),
+      scrollNodeHandler,
       scrollContentHorizontallyCenter,
       fitContentToView,
+      getCanvasState,
     }));
 
     useEffect(
@@ -177,9 +186,15 @@ const ReactInfiniteCanvasRenderer = memo(
         });
 
         onCanvasMount({
-          scrollNodeToCenter,
+          scrollNodeToCenter: (options: any) =>
+            scrollNodeHandler({
+              ...options,
+              position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
+            }),
+          scrollNodeHandler,
           scrollContentHorizontallyCenter,
           fitContentToView,
+          getCanvasState,
         });
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -249,8 +264,7 @@ const ReactInfiniteCanvasRenderer = memo(
             const containerBounds = canvasRef.current?.getBoundingClientRect();
             const { width: containerWidth = 0, height: containerHeight = 0 } =
               containerBounds || {};
-            const scaleDiff =
-              currentZoom > 1 ? 1 * currentZoom : 1 / currentZoom;
+            const scaleDiff = 1 / currentZoom;
             const contentWidth = contentBounds.width * scaleDiff;
             const contentHeight = contentBounds.height * scaleDiff;
             const heightRatio = containerHeight / contentHeight;
@@ -264,7 +278,8 @@ const ReactInfiniteCanvasRenderer = memo(
 
             // below code calculates the translateX and translateY values to
             // center the content horizontally and fit content vertically
-            const translateX = ((containerWidth - contentWidth * newScale) / 2) + offset.x;
+            const translateX =
+              (containerWidth - contentWidth * newScale) / 2 + offset.x;
             const translateY = offset.y;
 
             const newTransform = zoomIdentity
@@ -286,7 +301,7 @@ const ReactInfiniteCanvasRenderer = memo(
       [maxZoom, minZoom]
     );
 
-    const scrollNodeToCenter = ({
+    const scrollNodeHandler = ({
       nodeElement,
       offset = { x: 0, y: 0 },
       scale,
@@ -329,7 +344,6 @@ const ReactInfiniteCanvasRenderer = memo(
           };
 
           const updatedScale = getUpdatedScale();
-          const isDifferentScale = updatedScale !== currentScale;
 
           // calculating svgBounds again because its width might be different if rightPanel is opened
           const svgBounds = canvasRef.current.getBoundingClientRect();
@@ -347,23 +361,13 @@ const ReactInfiniteCanvasRenderer = memo(
 
           const newTransform = zoomIdentity
             .translate(updatedX, updatedY)
-            .scale(currentScale);
+            .scale(updatedScale);
 
           canvasNode
             // @ts-ignore
             .transition()
             .duration(transitionDuration)
             .call(d3Zoom.transform, newTransform);
-
-          if (isDifferentScale) {
-            setTimeout(() => {
-              d3Zoom.scaleTo(
-                // @ts-ignore
-                canvasNode.transition().duration(transitionDuration),
-                updatedScale
-              );
-            }, transitionDuration + 100);
-          }
         },
         { timeout: TIME_TO_WAIT }
       );
@@ -386,11 +390,11 @@ const ReactInfiniteCanvasRenderer = memo(
           // calculating svgBounds again because its width might be different if rightPanel is opened
           const svgBounds = canvasRef.current.getBoundingClientRect();
           const nodeBounds = flowRendererRef.current.getBoundingClientRect();
-          const scaleDiff = scale > 1 ? 1 * scale : 1 / scale;
+          const scaleDiff = 1 / scale;
           const nodeBoundsWidth = nodeBounds.width * scaleDiff;
 
           const updatedX =
-            (svgBounds.width - nodeBoundsWidth * scale) / 2 - offset;
+            (svgBounds.width - nodeBoundsWidth * scale) / 2 + offset;
 
           setZoomTransform({
             ...zoomTransform,
@@ -409,6 +413,15 @@ const ReactInfiniteCanvasRenderer = memo(
         },
         { timeout: TIME_TO_WAIT }
       );
+    };
+
+    const getCanvasState = () => {
+      return {
+        canvasNode: select(canvasRef.current),
+        zoomNode: select(zoomContainerRef.current),
+        currentPosition: d3Selection.current.property("__zoom"),
+        d3Zoom,
+      };
     };
 
     const onActionClick = useCallback(
@@ -556,6 +569,7 @@ const ReactInfiniteCanvasRenderer = memo(
             position = COMPONENT_POSITIONS.BOTTOM_LEFT,
             offset = { x: 0, y: 0 },
             overlap = true,
+            className = "",
           } = config;
           return (
             <CustomComponentWrapper
@@ -564,6 +578,8 @@ const ReactInfiniteCanvasRenderer = memo(
               position={position}
               offset={offset}
               overlap={overlap}
+              zoomState={{ ...zoomTransform, minZoom, maxZoom }}
+              className={className}
             />
           );
         })}
@@ -577,11 +593,15 @@ const CustomComponentWrapper = ({
   position,
   offset,
   overlap,
+  zoomState,
+  className,
 }: {
   component: any;
   position: string;
   offset: { x: number; y: number };
   overlap: boolean;
+  zoomState: any;
+  className: string;
 }) => {
   const positionStyle = useMemo(() => {
     const updatedPos = Object.values(COMPONENT_POSITIONS).includes(position)
@@ -595,6 +615,10 @@ const CustomComponentWrapper = ({
     };
   }, [position, offset]);
 
+  const updatedComponent = React.cloneElement(component, {
+    zoomState,
+  });
+
   return (
     <div
       style={{
@@ -602,8 +626,9 @@ const CustomComponentWrapper = ({
         ...positionStyle,
         zIndex: overlap ? 20 : 1,
       }}
+      className={className}
     >
-      {component}
+      {updatedComponent}
     </div>
   );
 };

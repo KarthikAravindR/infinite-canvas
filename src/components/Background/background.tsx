@@ -2,7 +2,7 @@ import { clampValue } from '../../helpers/utils'
 
 import styles from './styles.module.css'
 
-interface BackgroundProps {
+export interface BackgroundProps {
   id?: string
   size?: number
   minSize?: number
