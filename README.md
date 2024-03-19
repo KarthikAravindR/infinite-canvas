@@ -16,6 +16,8 @@ npm install react-infinite-canvas
 
 ## Usage
 
+StackBlitz Example: https://stackblitz.com/edit/react-infinite-canvas-workflow?file=src/App.tsx&terminal=dev
+
 ```jsx
 import { useRef } from "react";
 import { ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "react-infinite-canvas";
