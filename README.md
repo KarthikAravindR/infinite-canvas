@@ -18,8 +18,8 @@ npm install react-infinite-canvas
 
 ```jsx
 import { useRef } from "react";
+import { ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "react-infinite-canvas";
 
-import { ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "./App";
 import { COMPONENT_POSITIONS } from "./helpers/constants";
 import ReactDOM from "react-dom";
 
