@@ -57,6 +57,16 @@ export interface ReactInfiniteCanvasProps {
     thickness?: string;
     minSize?: string;
   };
+  backgroundConfig?: {
+    id?: string;
+    size?: number;
+    minSize?: number;
+    maxZoom?: number;
+    gap?: number;
+    minOpacity?: number;
+    maxOpacity?: number;
+    elementColor?: string;
+  };
   customComponents?: Array<{
     component: JSX.Element;
     position?: string;
@@ -105,6 +115,7 @@ const ReactInfiniteCanvasRenderer = memo(
     customComponents = [],
     renderScrollBar = true,
     scrollBarConfig = {},
+    backgroundConfig = {},
     onCanvasMount = () => {},
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -547,16 +558,12 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} />
+        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} {...backgroundConfig} />
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}
             scale={zoomTransform.scale}
-            startingPosition={scrollBarConfig.startingPosition}
-            offset={scrollBarConfig.offset}
-            color={scrollBarConfig.color}
-            thickness={scrollBarConfig.thickness}
-            minSize={scrollBarConfig.minSize}
+            {...scrollBarConfig}
             verticalOffsetHeight={canvasWrapperRef.current.offsetHeight}
             horizontalOffsetWidth={canvasWrapperRef.current.offsetWidth}
             getContainerOffset={getContainerOffset}
