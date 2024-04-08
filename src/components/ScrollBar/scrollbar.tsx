@@ -83,20 +83,6 @@ export const ScrollBar = forwardRef(
       verticalSizeDecrease: 0,
     });
 
-    console.log("~! startingPos", {
-      verticalPos: scrollConfig.verticalPos,
-      ver: clampValue({
-        value: scrollConfig.verticalPos,
-        min: offset.y,
-        max: verticalOffsetHeight,
-      }),
-      offset,
-      verticalOffsetHeight,
-      calc: startingPosition
-        ? startingPosition.y
-        : (verticalOffsetHeight ?? 0) / ZOOM_CONFIGS.SCROLL_POS_RATIO,
-    });
-
     useImperativeHandle(ref, () => ({
       resetScrollPos: () => {
         setScrollConfig((state) => ({
@@ -112,24 +98,6 @@ export const ScrollBar = forwardRef(
       onScrollDeltaChangeHandler,
       onMouseUp: handleMouseUp,
     }));
-
-    // useEffect(
-    //   function onLeftPanelChange() {
-    //     setScrollConfig((state) => {
-    //       const leftPanelChange =
-    //         leftPanelWidth === 0 && appliedLeftPanelWidth.current! > 0
-    //           ? -appliedLeftPanelWidth.current!
-    //           : leftPanelWidth!;
-    //       appliedLeftPanelWidth.current = leftPanelWidth;
-
-    //       return {
-    //         ...state,
-    //         horizontalPos: state.horizontalPos + leftPanelChange!,
-    //       };
-    //     });
-    //   },
-    //   [leftPanelWidth]
-    // );
 
     useEffect(
       function onScaleChangeHandler() {
