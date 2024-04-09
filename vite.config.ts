@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: (format) => `react-infinite-canvas.${format}.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'd3-zoom', 'd3-selection'],
       output: {
         globals: {
           react: 'React',
