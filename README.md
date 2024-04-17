@@ -2,7 +2,7 @@
 
 An Infinite Canvas Component for React where you can place your component anywhere on the canvas with zoom in, zoom out and panning functionality. It also supports custom components to control the canvas.
 
-![Screen](https://github.com/KarthikAravindR/infinite-canvas/assets/41736896/bfcc9878-bcc1-4337-90d4-434be1cb16d4)
+![Screen Recording 2024-04-17 at 12 25 16 PM](https://github.com/KarthikAravindR/infinite-canvas/assets/41736896/33c9a983-0b8c-4740-95ab-4172fa9cfe55)
 
 ### Contents
 
