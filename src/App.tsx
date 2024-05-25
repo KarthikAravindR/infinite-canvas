@@ -78,10 +78,56 @@ export interface ReactInfiniteCanvasProps {
 }
 
 export type ReactInfiniteCanvasHandle = {
-  scrollNodeToCenter: (options: any) => void;
-  scrollNodeHandler: (options: any) => void;
-  scrollContentHorizontallyCenter: (options: any) => void;
-  fitContentToView: (options: any) => void;
+  scrollNodeToCenter: ({
+    nodeElement,
+    offset,
+    scale,
+    shouldUpdateMaxScale,
+    maxScale,
+    transitionDuration,
+  }: {
+    nodeElement?: HTMLElement;
+    offset?: { x: number; y: number };
+    scale?: number;
+    shouldUpdateMaxScale?: boolean;
+    maxScale?: number;
+    transitionDuration?: number;
+  }) => void;
+  scrollNodeHandler: ({
+    nodeElement,
+    offset,
+    scale,
+    shouldUpdateMaxScale,
+    maxScale,
+    transitionDuration,
+    position,
+  }: {
+    nodeElement?: HTMLElement;
+    offset?: { x: number; y: number };
+    scale?: number;
+    shouldUpdateMaxScale?: boolean;
+    maxScale?: number;
+    transitionDuration?: number;
+    position?: string;
+  }) => void;
+  scrollContentHorizontallyCenter: ({
+    offset,
+    transitionDuration,
+  }: {
+    offset?: number;
+    transitionDuration?: number;
+  }) => void;
+  fitContentToView: ({
+    duration,
+    offset,
+    scale,
+    maxZoomLimit,
+  }: {
+    duration?: number;
+    offset?: { x: number; y: number };
+    scale?: number;
+    maxZoomLimit?: number;
+  }) => void;
   getCanvasState: () => any;
 };
 
@@ -138,9 +184,28 @@ const ReactInfiniteCanvasRenderer = memo(
     });
 
     useImperativeHandle(ref, () => ({
-      scrollNodeToCenter: (options: any) =>
+      scrollNodeToCenter: ({
+        nodeElement,
+        offset,
+        scale,
+        shouldUpdateMaxScale,
+        maxScale,
+        transitionDuration,
+      }: {
+        nodeElement: any;
+        offset?: { x: number; y: number };
+        scale?: number;
+        shouldUpdateMaxScale?: boolean;
+        maxScale?: number;
+        transitionDuration?: number;
+      }) =>
         scrollNodeHandler({
-          ...options,
+          nodeElement,
+          offset,
+          scale,
+          shouldUpdateMaxScale,
+          maxScale,
+          transitionDuration,
           position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
         }),
       scrollNodeHandler,
@@ -197,9 +262,28 @@ const ReactInfiniteCanvasRenderer = memo(
         });
 
         onCanvasMount({
-          scrollNodeToCenter: (options: any) =>
+          scrollNodeToCenter: ({
+            nodeElement,
+            offset,
+            scale,
+            shouldUpdateMaxScale,
+            maxScale,
+            transitionDuration
+          }: {
+            nodeElement?: HTMLElement;
+            offset?: { x: number; y: number };
+            scale?: number;
+            shouldUpdateMaxScale?: boolean;
+            maxScale?: number;
+            transitionDuration?: number;
+          }) =>
             scrollNodeHandler({
-              ...options,
+              nodeElement,
+              offset,
+              scale,
+              shouldUpdateMaxScale,
+              maxScale,
+              transitionDuration,
               position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
             }),
           scrollNodeHandler,
