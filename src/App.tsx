@@ -23,7 +23,7 @@ import {
 import { clampValue, getUpdatedNodePosition } from "./helpers/utils";
 
 import styles from "./App.module.css";
-import { ScrollBar } from "./components/scrollBar/scrollbar";
+import { ScrollBar } from "./components/ScrollBar/scrollbar";
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const TIME_TO_WAIT = isSafari ? 600 : 300;
@@ -139,6 +139,13 @@ interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
 export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
   forwardRef(({ children, ...restProps }, ref) => {
     const wrapperRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      // Code here will run whenever 'children' changes
+      console.log("Children updated", children);
+      // Additional logic to handle the new children
+    }, [children]); // Dependency array includes 'children' to track its changes
+
     return (
       <ReactInfiniteCanvasRenderer innerRef={ref} {...restProps}>
         <div
@@ -268,7 +275,7 @@ const ReactInfiniteCanvasRenderer = memo(
             scale,
             shouldUpdateMaxScale,
             maxScale,
-            transitionDuration
+            transitionDuration,
           }: {
             nodeElement?: HTMLElement;
             offset?: { x: number; y: number };
@@ -323,7 +330,10 @@ const ReactInfiniteCanvasRenderer = memo(
           }
         },
         { passive: false, capture: true }
-      );
+      )
+      .on("mousemove", (e) => {
+        console.log(e);
+      });
 
     const onScrollDeltaHandler = (scrollDelta: {
       deltaX: number;
@@ -642,7 +652,11 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} {...backgroundConfig} />
+        <Background
+          maxZoom={maxZoom}
+          zoomTransform={zoomTransform}
+          {...backgroundConfig}
+        />
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}
