@@ -1,5 +1,5 @@
-import { ReactInfiniteCanvasProps } from "./types";
-import useChildrenStore from "../store/children";
+import { ReactInfiniteCanvasProps } from "../types";
+import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { pointer, select } from "d3-selection";
@@ -14,22 +14,23 @@ import {
   useRef,
 } from "react";
 
-import { Background } from "../main";
+import { Background } from "../../main";
 import {
   ZOOM_CONFIGS,
   ZOOM_CONTROLS,
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
-} from "../helpers/constants";
+} from "../../helpers/constants";
 
-import { clampValue, getUpdatedNodePosition } from "../helpers/utils";
-import styles from "../App.module.css";
-import { ScrollBar } from "../components/ScrollBar/scrollbar";
-import { CustomComponentWrapper } from "./Wrapper";
-import { ZOOM_KEY_CODES } from "./constants";
-
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-const TIME_TO_WAIT = isSafari ? 600 : 300;
+import { clampValue } from "../../helpers/utils";
+import styles from "../../App.module.css";
+import { ScrollBar } from "../../components/ScrollBar/scrollbar";
+import { CustomComponentWrapper } from "../Wrapper";
+import { TIME_TO_WAIT, ZOOM_KEY_CODES, isSafari } from "../constants";
+import {
+  ScrollToCenterProps,
+  scrollNodeHandler,
+} from "./core/scrollNodeHandler";
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
@@ -72,21 +73,20 @@ export const ReactInfiniteCanvasRenderer = memo(
 
     useImperativeHandle(ref, () => ({
       scrollNodeToCenter: ({
+        d3Zoom,
+        canvasRef,
+        d3Selection,
         nodeElement,
         offset,
         scale,
         shouldUpdateMaxScale,
         maxScale,
         transitionDuration,
-      }: {
-        nodeElement: any;
-        offset?: { x: number; y: number };
-        scale?: number;
-        shouldUpdateMaxScale?: boolean;
-        maxScale?: number;
-        transitionDuration?: number;
-      }) =>
+      }: ScrollToCenterProps) =>
         scrollNodeHandler({
+          d3Zoom,
+          canvasRef,
+          d3Selection,
           nodeElement,
           offset,
           scale,
@@ -150,21 +150,20 @@ export const ReactInfiniteCanvasRenderer = memo(
 
         onCanvasMount({
           scrollNodeToCenter: ({
+            d3Zoom,
+            canvasRef,
+            d3Selection,
             nodeElement,
             offset,
             scale,
             shouldUpdateMaxScale,
             maxScale,
             transitionDuration,
-          }: {
-            nodeElement?: HTMLElement;
-            offset?: { x: number; y: number };
-            scale?: number;
-            shouldUpdateMaxScale?: boolean;
-            maxScale?: number;
-            transitionDuration?: number;
-          }) =>
+          }: ScrollToCenterProps) =>
             scrollNodeHandler({
+              d3Zoom,
+              canvasRef,
+              d3Selection,
               nodeElement,
               offset,
               scale,
@@ -287,78 +286,6 @@ export const ReactInfiniteCanvasRenderer = memo(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [maxZoom, minZoom]
     );
-
-    const scrollNodeHandler = ({
-      nodeElement,
-      offset = { x: 0, y: 0 },
-      scale,
-      shouldUpdateMaxScale = true,
-      maxScale,
-      transitionDuration = 300,
-      position = SCROLL_NODE_POSITIONS.TOP_CENTER,
-    }: {
-      nodeElement?: HTMLElement;
-      offset?: { x: number; y: number };
-      scale?: number;
-      shouldUpdateMaxScale?: boolean;
-      maxScale?: number;
-      transitionDuration?: number;
-      position?: string;
-    }) => {
-      requestIdleCallback(
-        () => {
-          if (!nodeElement) return;
-          const zoomLevel = d3Selection.current.property("__zoom");
-          const {
-            k: currentScale,
-            x: currentTranslateX,
-            y: currentTranslateY,
-          } = zoomLevel;
-          const canvasNode = select(canvasRef.current);
-
-          const getUpdatedScale = () => {
-            const getClampedScale = (scale: number) => {
-              if (!maxScale) return scale;
-              return Math.min(maxScale, scale);
-            };
-
-            if (!scale) return getClampedScale(currentScale);
-            let updatedScale = scale;
-            if (shouldUpdateMaxScale) {
-              updatedScale = Math.max(scale, currentScale);
-            }
-            return getClampedScale(updatedScale);
-          };
-
-          const updatedScale = getUpdatedScale();
-
-          // calculating svgBounds again because its width might be different if rightPanel is opened
-          const svgBounds = canvasRef.current.getBoundingClientRect();
-          const nodeBounds = nodeElement.getBoundingClientRect();
-          const { updatedX, updatedY } = getUpdatedNodePosition({
-            position,
-            svgBounds,
-            nodeBounds,
-            currentTranslateX,
-            currentTranslateY,
-            currentScale,
-            updatedScale,
-            customOffset: { x: offset.x, y: offset.y },
-          });
-
-          const newTransform = zoomIdentity
-            .translate(updatedX, updatedY)
-            .scale(updatedScale);
-
-          canvasNode
-            // @ts-ignore
-            .transition()
-            .duration(transitionDuration)
-            .call(d3Zoom.transform, newTransform);
-        },
-        { timeout: TIME_TO_WAIT }
-      );
-    };
 
     const scrollContentHorizontallyCenter = ({
       offset = 0,

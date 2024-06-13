@@ -4,7 +4,7 @@ import React, { forwardRef, useEffect } from "react";
 
 import useChildrenStore from "./store/children";
 import { ReactInfiniteCanvasProps } from "./canva/types";
-import { ReactInfiniteCanvasRenderer } from "./canva/Renderer";
+import { ReactInfiniteCanvasRenderer } from "./canva/renderer/Renderer";
 
 export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
   forwardRef(({ children, ...restProps }, ref) => {
