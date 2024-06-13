@@ -57,5 +57,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
+  },
+  "dependencies": {
+    "zustand": "^4.5.2"
   }
 }
