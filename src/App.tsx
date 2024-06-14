@@ -11,6 +11,7 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
     const wrapperRef = React.useRef<HTMLDivElement>(null);
     const { setRef } = useChildrenStore();
 
+    console.log({ restProps });
     useEffect(() => {
       console.log("refset");
       setRef(wrapperRef);

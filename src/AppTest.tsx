@@ -16,11 +16,15 @@ function App() {
         ref={canvasRef}
         onCanvasMount={(canvasFunc) => {
           console.log(canvasFunc);
-          canvasFunc.scrollContentHorizontallyCenter({
-            offset: 100,
-            transitionDuration: 300,
+          // canvasFunc.scrollContentHorizontallyCenter({
+          //   offset: 100,
+          //   transitionDuration: 300,
+          // });
+          canvasFunc.fitContentToView({
+            scale: 1,
+            duration: 3000,
+            maxZoomLimit: 1,
           });
-          // canvasFunc.fitContentToView({ scale: 0.5 });
         }}
       >
         <div style={{ width: "200px", height: "200px", background: "red" }}>
