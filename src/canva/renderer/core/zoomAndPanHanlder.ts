@@ -6,7 +6,6 @@ import {
 } from "./scrollNodeHandler";
 import { onMouseDown } from "./onMouseDown";
 import { ZoomBehavior } from "d3-zoom";
-import { SetZoomTransformObj } from "../Renderer";
 import { ReactInfiniteCanvasHandle } from "../../types";
 
 export type ZoomAndPanProps = {
@@ -15,29 +14,10 @@ export type ZoomAndPanProps = {
   canvasWrapperRef: React.MutableRefObject<HTMLDivElement | null>;
   styles: CSSModuleClasses;
   zoomContainerRef: React.MutableRefObject<any>;
-  setZoomTransform: React.Dispatch<React.SetStateAction<SetZoomTransformObj>>;
+  setZoomTransform: React.Dispatch<React.SetStateAction<any>>;
   onCanvasMount: (functions: ReactInfiniteCanvasHandle) => void;
-  scrollContentHorizontallyCenter: ({
-    offset,
-    transitionDuration,
-  }: {
-    offset?: number;
-    transitionDuration?: number;
-  }) => void;
-  fitContentToView: ({
-    duration,
-    offset,
-    scale,
-    maxZoomLimit,
-  }: {
-    duration?: number;
-    offset?: {
-      x: number;
-      y: number;
-    };
-    scale?: number;
-    maxZoomLimit?: number;
-  }) => void;
+  scrollContentHorizontallyCenter: any;
+  fitContentToView: any;
   getCanvasState: () => {
     canvasNode: Selection<any, unknown, null, undefined>;
     zoomNode: Selection<any, unknown, null, undefined>;

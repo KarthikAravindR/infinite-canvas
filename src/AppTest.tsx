@@ -1,7 +1,8 @@
 import { useRef } from "react";
 
 import "./App.module.css";
-import { ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "./App.tsx";
+import { ReactInfiniteCanvas } from "./App.tsx";
+import { ReactInfiniteCanvasHandle } from "./canva/types/index.ts";
 
 function App() {
   const canvasRef = useRef<ReactInfiniteCanvasHandle>();
@@ -14,7 +15,12 @@ function App() {
       <ReactInfiniteCanvas
         ref={canvasRef}
         onCanvasMount={(canvasFunc) => {
-          canvasFunc.fitContentToView({ scale: 0.5 });
+          console.log(canvasFunc);
+          canvasFunc.scrollContentHorizontallyCenter({
+            offset: 100,
+            transitionDuration: 300,
+          });
+          // canvasFunc.fitContentToView({ scale: 0.5 });
         }}
       >
         <div style={{ width: "200px", height: "200px", background: "red" }}>

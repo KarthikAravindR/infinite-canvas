@@ -1,9 +1,9 @@
-import { ReactInfiniteCanvasHandle, ReactInfiniteCanvasProps } from "../types";
+import { ReactInfiniteCanvasProps } from "../types";
 import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Selection, pointer, select } from "d3-selection";
-import { ZoomBehavior, zoom, zoomIdentity } from "d3-zoom";
+import { pointer, select } from "d3-selection";
+import { zoom, zoomIdentity } from "d3-zoom";
 import {
   memo,
   useCallback,
@@ -31,17 +31,12 @@ import {
   scrollNodeToCenterHandler,
 } from "./core/scrollNodeHandler";
 import { zoomAndPanHandler } from "./core/zoomAndPanHanlder";
+import { scrollContentHorizontallyCenter } from "./core/scrollContentCenter";
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
   innerRef: any;
 }
-
-export type SetZoomTransformObj = {
-  translateX: number;
-  translateY: number;
-  scale: number;
-};
 
 export const ReactInfiniteCanvasRenderer = memo(
   ({
@@ -71,7 +66,7 @@ export const ReactInfiniteCanvasRenderer = memo(
     }, [maxZoom, minZoom]);
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
 
-    const [zoomTransform, setZoomTransform] = useState<SetZoomTransformObj>({
+    const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
       translateY: 0,
       scale: 1,
@@ -100,7 +95,16 @@ export const ReactInfiniteCanvasRenderer = memo(
           zoomContainerRef,
           setZoomTransform,
           onCanvasMount,
-          scrollContentHorizontallyCenter,
+          scrollContentHorizontallyCenter: (args) =>
+            scrollContentHorizontallyCenter({
+              ...args,
+              canvasRef,
+              d3Selection,
+              d3Zoom,
+              flowRendererRef,
+              setZoomTransform,
+              zoomTransform,
+            }),
           fitContentToView,
           getCanvasState,
         });
@@ -213,48 +217,6 @@ export const ReactInfiniteCanvasRenderer = memo(
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [maxZoom, minZoom]
     );
-
-    const scrollContentHorizontallyCenter = ({
-      offset = 0,
-      transitionDuration = 300,
-    }: {
-      offset?: number;
-      transitionDuration?: number;
-    }) => {
-      if (!flowRendererRef.current) return;
-      requestIdleCallback(
-        () => {
-          const zoomLevel = d3Selection.current.property("__zoom");
-          const { k: scale, y: translateY } = zoomLevel;
-          const canvasNode = select(canvasRef.current);
-
-          // calculating svgBounds again because its width might be different if rightPanel is opened
-          const svgBounds = canvasRef.current.getBoundingClientRect();
-          const nodeBounds = flowRendererRef.current.getBoundingClientRect();
-          const scaleDiff = 1 / scale;
-          const nodeBoundsWidth = nodeBounds.width * scaleDiff;
-
-          const updatedX =
-            (svgBounds.width - nodeBoundsWidth * scale) / 2 + offset;
-
-          setZoomTransform({
-            ...zoomTransform,
-            translateX: updatedX,
-          });
-
-          const newTransform = zoomIdentity
-            .translate(updatedX, translateY)
-            .scale(scale);
-
-          canvasNode
-            // @ts-ignore
-            .transition()
-            .duration(transitionDuration)
-            .call(d3Zoom.transform, newTransform);
-        },
-        { timeout: TIME_TO_WAIT }
-      );
-    };
 
     const getCanvasState = () => {
       return {
