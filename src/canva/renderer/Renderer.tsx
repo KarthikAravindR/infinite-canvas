@@ -2,8 +2,8 @@ import { ReactInfiniteCanvasProps } from "../types";
 import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { pointer, select } from "d3-selection";
-import { zoom, zoomIdentity } from "d3-zoom";
+import { select } from "d3-selection";
+import { zoom } from "d3-zoom";
 import {
   memo,
   useCallback,
@@ -21,18 +21,24 @@ import {
   COMPONENT_POSITIONS,
 } from "../../helpers/constants";
 
-import { clampValue } from "../../helpers/utils";
 import styles from "../../App.module.css";
 import { ScrollBar } from "../../components/ScrollBar/scrollbar";
 import { CustomComponentWrapper } from "../Wrapper";
-import { TIME_TO_WAIT, ZOOM_KEY_CODES, isSafari } from "../constants";
+import { ZOOM_KEY_CODES, isSafari } from "../constants";
 import {
   scrollNodeHandler,
   scrollNodeToCenterHandler,
-} from "./core/scrollNodeHandler";
+} from "./core/exposed/scrollNodeHandler";
 import { zoomAndPanHandler } from "./core/zoomAndPanHanlder";
-import { scrollContentHorizontallyCenter } from "./core/scrollContentCenter";
-import { fitContentToViewHandler } from "./core/fitContentToViewHandler";
+import { scrollContentHorizontallyCenter } from "./core/exposed/scrollContentCenter";
+import { fitContentToViewHandler } from "./core/exposed/fitContentToViewHandler";
+import {
+  ScrollDelta,
+  onScrollDelta,
+} from "./core/exposed/onScrollDeltaHandler";
+import { d3Listeners } from "./core/d3Main";
+import { getCanvasState } from "./core/exposed/getCanvasState";
+import { actionClickHandler } from "./core/actionClickHandler";
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
@@ -67,11 +73,29 @@ export const ReactInfiniteCanvasRenderer = memo(
     }, [maxZoom, minZoom]);
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
 
+    const getCanvasStateMemoized = useCallback(
+      () =>
+        getCanvasState({
+          d3Selection,
+          d3Zoom,
+          canvasRef,
+          zoomContainerRef,
+        }),
+      [d3Selection, d3Zoom, canvasRef, zoomContainerRef]
+    );
+
     const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
       translateY: 0,
       scale: 1,
     });
+
+    const onScrollDeltaHandler = (scrollDelta: ScrollDelta) =>
+      onScrollDelta({
+        d3Selection,
+        d3Zoom,
+        scrollDelta,
+      });
 
     const fitContentToView = useCallback(
       (args) =>
@@ -103,135 +127,54 @@ export const ReactInfiniteCanvasRenderer = memo(
       scrollNodeHandler,
       scrollContentHorizontallyCenter,
       fitContentToView,
-      getCanvasState,
+      getCanvasState: getCanvasStateMemoized,
     }));
 
-    useEffect(
-      () => {
-        d3Selection.current = select(canvasRef.current).call(d3Zoom);
-        canvasWrapperBounds.current = canvasWrapperRef.current
-          ? canvasWrapperRef.current.getBoundingClientRect()
-          : {};
+    useEffect(() => {
+      d3Selection.current = select(canvasRef.current).call(d3Zoom);
+      canvasWrapperBounds.current = canvasWrapperRef.current
+        ? canvasWrapperRef.current.getBoundingClientRect()
+        : {};
 
-        zoomAndPanHandler({
-          d3Zoom,
-          isUserPressed,
-          canvasWrapperRef,
-          styles,
-          zoomContainerRef,
-          setZoomTransform,
-          onCanvasMount,
-          scrollContentHorizontallyCenter: (args) =>
-            scrollContentHorizontallyCenter({
-              ...args,
-              canvasRef,
-              d3Selection,
-              d3Zoom,
-              flowRendererRef,
-              setZoomTransform,
-              zoomTransform,
-            }),
-          fitContentToView,
-          getCanvasState,
-        });
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      []
-    );
-
-    d3Selection.current
-      .call(zoom)
-      // Override the default wheel event listener
-      .on(
-        "wheel.zoom",
-        (event: {
-          preventDefault: () => void;
-          ctrlKey: any;
-          deltaY: number;
-          deltaX: any;
-        }) => {
-          event.preventDefault();
-          const currentZoom = d3Selection.current.property("__zoom").k || 1;
-
-          if (panOnScroll && !event.ctrlKey) {
-            const scrollDeltaValue = {
-              deltaX: event.deltaX,
-              deltaY: event.deltaY,
-            };
-            scrollBarRef.current?.onScrollDeltaChangeHandler(scrollDeltaValue);
-            onScrollDeltaHandler(scrollDeltaValue);
-          } else {
-            const nextZoom = currentZoom * Math.pow(2, -event.deltaY * 0.01);
-            d3Zoom.scaleTo(d3Selection.current, nextZoom, pointer(event));
-          }
-        },
-        { passive: false, capture: true }
-      )
-      .on("mousemove", (e) => {
-        if (child?.ref?.current) {
-          console.log(e.target === child?.ref?.current);
-        }
-      });
-
-    const onScrollDeltaHandler = (scrollDelta: {
-      deltaX: number;
-      deltaY: number;
-    }) => {
-      const currentZoom = d3Selection.current.property("__zoom").k || 1;
-      d3Zoom.translateBy(
-        d3Selection.current,
-        -(scrollDelta.deltaX / currentZoom),
-        -(scrollDelta.deltaY / currentZoom)
-      );
-    };
-
-    const getCanvasState = () => {
-      return {
-        canvasNode: select(canvasRef.current),
-        zoomNode: select(zoomContainerRef.current),
-        currentPosition: d3Selection.current.property("__zoom"),
+      zoomAndPanHandler({
         d3Zoom,
-      };
-    };
+        isUserPressed,
+        canvasWrapperRef,
+        styles,
+        zoomContainerRef,
+        setZoomTransform,
+        onCanvasMount,
+        scrollContentHorizontallyCenter: (args) =>
+          scrollContentHorizontallyCenter({
+            ...args,
+            canvasRef,
+            d3Selection,
+            d3Zoom,
+            flowRendererRef,
+            setZoomTransform,
+            zoomTransform,
+          }),
+        fitContentToView,
+        getCanvasState: getCanvasStateMemoized,
+      });
+    }, []);
+
+    d3Listeners({
+      d3Selection,
+      d3Zoom,
+      panOnScroll,
+      onScrollDeltaHandler,
+      scrollBarRef,
+    });
 
     const onActionClick = useCallback(
-      function actionClickHandler(actionId: string) {
-        const canvasNode = select(canvasRef.current);
-        const { k: currentScale } = d3Selection.current.property("__zoom");
-        switch (actionId) {
-          case ZOOM_CONTROLS.FIT_TO_VIEW:
-            fitContentToView({});
-            break;
-
-          case ZOOM_CONTROLS.FIT_TO_HUNDRED:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              1
-            );
-            break;
-
-          case ZOOM_CONTROLS.ZOOM_IN:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              currentScale + ZOOM_CONFIGS.ZOOM_RATIO
-            );
-            break;
-
-          case ZOOM_CONTROLS.ZOOM_OUT:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              currentScale - ZOOM_CONFIGS.ZOOM_RATIO
-            );
-            break;
-
-          default:
-            break;
-        }
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      (actionId) =>
+        actionClickHandler(actionId, {
+          d3Selection,
+          d3Zoom,
+          canvasRef,
+          fitContentToView,
+        }),
       [fitContentToView]
     );
 

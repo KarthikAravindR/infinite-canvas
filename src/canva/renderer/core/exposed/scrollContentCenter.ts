@@ -1,5 +1,5 @@
 import { select } from "d3-selection";
-import { TIME_TO_WAIT } from "../../constants";
+import { TIME_TO_WAIT } from "../../../constants";
 import { zoomIdentity } from "d3-zoom";
 
 type SrollCenterProps = {

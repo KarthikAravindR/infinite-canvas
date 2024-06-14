@@ -1,8 +1,8 @@
 import { zoomIdentity } from "d3-zoom";
-import { SCROLL_NODE_POSITIONS } from "../../../main";
+import { SCROLL_NODE_POSITIONS } from "../../../../main";
 import { select } from "d3-selection";
-import { getUpdatedNodePosition } from "../../../helpers/utils";
-import { TIME_TO_WAIT } from "../../constants";
+import { getUpdatedNodePosition } from "../../../../helpers/utils";
+import { TIME_TO_WAIT } from "../../../constants";
 
 export type ScrollToCenterProps = {
   d3Zoom?: any;

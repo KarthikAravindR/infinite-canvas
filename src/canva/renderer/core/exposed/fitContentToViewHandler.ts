@@ -1,7 +1,7 @@
 import { zoomIdentity } from "d3-zoom";
-import { TIME_TO_WAIT } from "../../constants";
-import { ZOOM_CONFIGS } from "../../../helpers/constants";
-import { clampValue } from "../../../helpers/utils";
+import { TIME_TO_WAIT } from "../../../constants";
+import { ZOOM_CONFIGS } from "../../../../helpers/constants";
+import { clampValue } from "../../../../helpers/utils";
 import { select } from "d3-selection";
 
 export type FitContentHanlderProps = {

@@ -3,7 +3,7 @@ import { isSafari } from "../../constants";
 import {
   scrollNodeHandler,
   scrollNodeToCenterHandler,
-} from "./scrollNodeHandler";
+} from "./exposed/scrollNodeHandler";
 import { onMouseDown } from "./onMouseDown";
 import { ZoomBehavior } from "d3-zoom";
 import { ReactInfiniteCanvasHandle } from "../../types";
