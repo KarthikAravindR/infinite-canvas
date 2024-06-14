@@ -57,6 +57,7 @@ export const zoomAndPanHandler = ({
         transform: any;
       }) => {
         if (event.sourceEvent?.ctrlKey === false && event.type === "zoom") {
+          canvasWrapperRef.current?.classList.add(styles.grabbing);
           canvasWrapperRef.current?.classList.add(styles.panning);
         }
         const zoomTransform = event.transform;
@@ -74,6 +75,7 @@ export const zoomAndPanHandler = ({
   d3Zoom.on("end", () => {
     isUserPressed.current = false;
     canvasWrapperRef.current?.classList.remove(styles.panning);
+    canvasWrapperRef.current?.classList.remove(styles.grabbing);
   });
 
   onCanvasMount({

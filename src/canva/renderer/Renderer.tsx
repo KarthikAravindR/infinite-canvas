@@ -15,16 +15,12 @@ import {
 } from "react";
 
 import { Background } from "../../main";
-import {
-  ZOOM_CONFIGS,
-  ZOOM_CONTROLS,
-  COMPONENT_POSITIONS,
-} from "../../helpers/constants";
+import { ZOOM_CONFIGS, COMPONENT_POSITIONS } from "../../helpers/constants";
 
 import styles from "../../App.module.css";
 import { ScrollBar } from "../../components/ScrollBar/scrollbar";
 import { CustomComponentWrapper } from "../Wrapper";
-import { ZOOM_KEY_CODES, isSafari } from "../constants";
+import { isSafari } from "../constants";
 import {
   scrollNodeHandler,
   scrollNodeToCenterHandler,
@@ -67,7 +63,7 @@ export const ReactInfiniteCanvasRenderer = memo(
     const flowRendererRef = children.ref;
     const isUserPressed = useRef<boolean | null>(null);
 
-    const child = useChildrenStore();
+    const { childComponentRef } = useChildrenStore();
 
     const d3Zoom = useMemo(() => {
       return zoom<SVGAElement, unknown>().scaleExtent([minZoom, maxZoom]);
@@ -166,6 +162,7 @@ export const ReactInfiniteCanvasRenderer = memo(
       panOnScroll,
       onScrollDeltaHandler,
       scrollBarRef,
+      childComponentRef,
     });
 
     const onActionClick = useCallback(

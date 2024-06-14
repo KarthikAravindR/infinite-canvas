@@ -34,7 +34,6 @@ export function fitContentToViewHandler(props: FitContentHanlderProps) {
     minZoom,
     maxZoom,
   } = props;
-  console.log({ props });
   requestIdleCallback(
     () => {
       if (!flowRendererRef.current) return;
