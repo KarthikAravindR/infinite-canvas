@@ -1,9 +1,9 @@
-import { ReactInfiniteCanvasProps } from "../types";
+import { ReactInfiniteCanvasHandle, ReactInfiniteCanvasProps } from "../types";
 import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { pointer, select } from "d3-selection";
-import { zoom, zoomIdentity } from "d3-zoom";
+import { Selection, pointer, select } from "d3-selection";
+import { ZoomBehavior, zoom, zoomIdentity } from "d3-zoom";
 import {
   memo,
   useCallback,
@@ -18,7 +18,6 @@ import { Background } from "../../main";
 import {
   ZOOM_CONFIGS,
   ZOOM_CONTROLS,
-  SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "../../helpers/constants";
 
@@ -28,14 +27,21 @@ import { ScrollBar } from "../../components/ScrollBar/scrollbar";
 import { CustomComponentWrapper } from "../Wrapper";
 import { TIME_TO_WAIT, ZOOM_KEY_CODES, isSafari } from "../constants";
 import {
-  ScrollToCenterProps,
   scrollNodeHandler,
+  scrollNodeToCenterHandler,
 } from "./core/scrollNodeHandler";
+import { zoomAndPanHandler } from "./core/zoomAndPanHanlder";
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
   innerRef: any;
 }
+
+export type SetZoomTransformObj = {
+  translateX: number;
+  translateY: number;
+  scale: number;
+};
 
 export const ReactInfiniteCanvasRenderer = memo(
   ({
@@ -65,36 +71,14 @@ export const ReactInfiniteCanvasRenderer = memo(
     }, [maxZoom, minZoom]);
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
 
-    const [zoomTransform, setZoomTransform] = useState({
+    const [zoomTransform, setZoomTransform] = useState<SetZoomTransformObj>({
       translateX: 0,
       translateY: 0,
       scale: 1,
     });
 
     useImperativeHandle(ref, () => ({
-      scrollNodeToCenter: ({
-        d3Zoom,
-        canvasRef,
-        d3Selection,
-        nodeElement,
-        offset,
-        scale,
-        shouldUpdateMaxScale,
-        maxScale,
-        transitionDuration,
-      }: ScrollToCenterProps) =>
-        scrollNodeHandler({
-          d3Zoom,
-          canvasRef,
-          d3Selection,
-          nodeElement,
-          offset,
-          scale,
-          shouldUpdateMaxScale,
-          maxScale,
-          transitionDuration,
-          position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
-        }),
+      scrollNodeToCenter: scrollNodeToCenterHandler,
       scrollNodeHandler,
       scrollContentHorizontallyCenter,
       fitContentToView,
@@ -102,77 +86,20 @@ export const ReactInfiniteCanvasRenderer = memo(
     }));
 
     useEffect(
-      function zoomAndPanHandler() {
+      () => {
         d3Selection.current = select(canvasRef.current).call(d3Zoom);
-        const zoomNode = select(zoomContainerRef.current);
         canvasWrapperBounds.current = canvasWrapperRef.current
           ? canvasWrapperRef.current.getBoundingClientRect()
           : {};
 
-        d3Zoom
-          .filter((event: { type: string; ctrlKey: any }) => {
-            if (event.type === "mousedown" && !isUserPressed.current) {
-              isUserPressed.current = true;
-              onMouseDown();
-            }
-
-            return event.ctrlKey || event.type !== "wheel";
-          })
-          .on(
-            "zoom",
-            (event: {
-              sourceEvent: { ctrlKey: boolean };
-              type: string;
-              transform: any;
-            }) => {
-              if (
-                event.sourceEvent?.ctrlKey === false &&
-                event.type === "zoom"
-              ) {
-                canvasWrapperRef.current?.classList.add(styles.panning);
-              }
-              const zoomTransform = event.transform;
-              const { x: translateX, y: translateY, k: scale } = zoomTransform;
-              const div = zoomContainerRef.current;
-              setZoomTransform({ translateX, translateY, scale });
-              if (isSafari && div) {
-                div.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-              } else {
-                zoomNode.attr("transform", zoomTransform);
-              }
-            }
-          );
-
-        d3Zoom.on("end", () => {
-          isUserPressed.current = false;
-          canvasWrapperRef.current?.classList.remove(styles.panning);
-        });
-
-        onCanvasMount({
-          scrollNodeToCenter: ({
-            d3Zoom,
-            canvasRef,
-            d3Selection,
-            nodeElement,
-            offset,
-            scale,
-            shouldUpdateMaxScale,
-            maxScale,
-            transitionDuration,
-          }: ScrollToCenterProps) =>
-            scrollNodeHandler({
-              d3Zoom,
-              canvasRef,
-              d3Selection,
-              nodeElement,
-              offset,
-              scale,
-              shouldUpdateMaxScale,
-              maxScale,
-              transitionDuration,
-              position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
-            }),
-          scrollNodeHandler,
+        zoomAndPanHandler({
+          d3Zoom,
+          isUserPressed,
+          canvasWrapperRef,
+          styles,
+          zoomContainerRef,
+          setZoomTransform,
+          onCanvasMount,
           scrollContentHorizontallyCenter,
           fitContentToView,
           getCanvasState,
@@ -414,20 +341,6 @@ export const ReactInfiniteCanvasRenderer = memo(
       },
       [onActionClick]
     );
-
-    const onMouseDown = () => {
-      const bodyElement = document.body;
-      if (bodyElement) {
-        const mouseDownEvent = new MouseEvent("mousedown", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        });
-
-        // Dispatch the mousedown event on the body element
-        bodyElement.dispatchEvent(mouseDownEvent);
-      }
-    };
 
     const getContainerOffset = useCallback(function offsetHandler(
       isVertical = true

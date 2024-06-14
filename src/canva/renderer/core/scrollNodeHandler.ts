@@ -83,3 +83,27 @@ export const scrollNodeHandler = ({
     { timeout: TIME_TO_WAIT }
   );
 };
+
+export const scrollNodeToCenterHandler = ({
+  d3Zoom,
+  canvasRef,
+  d3Selection,
+  nodeElement,
+  offset,
+  scale,
+  shouldUpdateMaxScale,
+  maxScale,
+  transitionDuration,
+}: ScrollToCenterProps) =>
+  scrollNodeHandler({
+    d3Zoom,
+    canvasRef,
+    d3Selection,
+    nodeElement,
+    offset,
+    scale,
+    shouldUpdateMaxScale,
+    maxScale,
+    transitionDuration,
+    position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
+  });
