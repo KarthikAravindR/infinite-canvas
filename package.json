@@ -59,6 +59,7 @@
     "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
   },
   "dependencies": {
+    "d3-drag": "^3.0.0",
     "zustand": "^4.5.2"
   }
 }

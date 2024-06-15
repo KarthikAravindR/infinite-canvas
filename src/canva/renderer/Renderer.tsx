@@ -2,7 +2,8 @@ import { ReactInfiniteCanvasProps } from "../types";
 import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { select } from "d3-selection";
+import { pointer, select } from "d3-selection";
+import { drag } from "d3-drag";
 import { zoom } from "d3-zoom";
 import {
   memo,
@@ -36,6 +37,7 @@ import { d3Listeners } from "./core/d3Main";
 import { getCanvasState } from "./core/exposed/getCanvasState";
 import { actionClickHandler } from "./core/actionClickHandler";
 import { zoomShortcutHandler } from "./core/zoomShortcutHandler";
+import { defineDragBehavior } from "./core/drag";
 
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: any;
@@ -69,6 +71,53 @@ export const ReactInfiniteCanvasRenderer = memo(
       return zoom<SVGAElement, unknown>().scaleExtent([minZoom, maxZoom]);
     }, [maxZoom, minZoom]);
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
+
+    useEffect(() => {
+      if (!canvasRef.current || !childComponentRef?.current) {
+        return () => {};
+      }
+
+      const d3Setup = select(canvasRef.current).call(d3Zoom);
+      d3Selection.current = d3Setup;
+
+      if (childComponentRef?.current) {
+        const childComponentSelection = select(
+          `.${childComponentRef.current.className}`
+        );
+
+        let isDragging = false;
+
+        const setDrag = drag()
+          .on("start", (e) => {
+            isDragging = true;
+            // Actions on drag start
+          })
+          .on("drag", (event) => {
+            const [x, y] = pointer(event);
+            if (childComponentRef.current && isDragging) {
+              childComponentRef.current.style.transform = `translate(${x}px, ${y}px)`;
+            }
+          })
+          .on("end", () => {
+            isDragging = false;
+            // Actions on drag end
+          });
+
+        // Continue with setting up behaviors
+        childComponentSelection.on("mouseover", (e) => {
+          canvasWrapperRef.current?.classList.add(styles.panning);
+        });
+        childComponentSelection
+          .on("mouseout", () => {
+            canvasWrapperRef.current?.classList.remove(styles.panning);
+          })
+          .call(setDrag);
+        // childComponentSelection.call((props) => dragBehavior(props));
+      }
+      // d3Selection.current.call(dragBehavior);
+
+      return () => d3Setup.on(".zoom", null); // Clean up zoom listeners
+    }, [canvasRef, childComponentRef, d3Zoom]);
 
     const getCanvasStateMemoized = useCallback(
       () =>
@@ -162,7 +211,6 @@ export const ReactInfiniteCanvasRenderer = memo(
       panOnScroll,
       onScrollDeltaHandler,
       scrollBarRef,
-      childComponentRef,
     });
 
     const onActionClick = useCallback(
