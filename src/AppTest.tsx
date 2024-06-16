@@ -10,15 +10,15 @@ function App() {
   return (
     <div
       className="workflowContainer"
-      style={{ width: "98vw", height: "98vh", background: "black" }}
+      style={{ width: "97vw", height: "98vh", background: "black" }}
     >
       <ReactInfiniteCanvas
         ref={canvasRef}
         onCanvasMount={(canvasFunc) => {
-          canvasFunc.scrollContentHorizontallyCenter({
-            offset: 100,
-            transitionDuration: 300,
-          });
+          // canvasFunc.scrollContentHorizontallyCenter({
+          //   offset: 100,
+          //   transitionDuration: 300,
+          // });
           // canvasFunc.fitContentToView({
           //   scale: 1,
           //   duration: 3000,

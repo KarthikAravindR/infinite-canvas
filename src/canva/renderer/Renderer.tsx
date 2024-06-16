@@ -67,6 +67,11 @@ export const ReactInfiniteCanvasRenderer = memo(
 
     const { childComponentRef } = useChildrenStore();
 
+    const [zoomTransform, setZoomTransform] = useState({
+      translateX: 0,
+      translateY: 0,
+      scale: 1,
+    });
     const d3Zoom = useMemo(() => {
       return zoom<SVGAElement, unknown>().scaleExtent([minZoom, maxZoom]);
     }, [maxZoom, minZoom]);
@@ -85,11 +90,16 @@ export const ReactInfiniteCanvasRenderer = memo(
           `.${childComponentRef.current.className}`
         );
 
-        defineDragBehavior({ childComponentRef, childComponentSelection });
+        defineDragBehavior({
+          childComponentRef,
+          childComponentSelection,
+          canvasWrapperRef,
+          zoomTransform,
+        });
       }
 
       return () => d3Setup.on(".zoom", null);
-    }, [canvasRef, childComponentRef, d3Zoom]);
+    }, [canvasRef, childComponentRef, d3Zoom, zoomTransform]);
 
     const getCanvasStateMemoized = useCallback(
       () =>
@@ -102,11 +112,9 @@ export const ReactInfiniteCanvasRenderer = memo(
       [d3Selection, d3Zoom, canvasRef, zoomContainerRef]
     );
 
-    const [zoomTransform, setZoomTransform] = useState({
-      translateX: 0,
-      translateY: 0,
-      scale: 1,
-    });
+    useEffect(() => {
+      console.log(zoomTransform);
+    }, [zoomTransform]);
 
     const onScrollDeltaHandler = (scrollDelta: ScrollDelta) =>
       onScrollDelta({
