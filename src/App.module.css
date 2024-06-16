@@ -11,7 +11,7 @@
   height: 100%;
 
   overflow: hidden;
-  background-color: var(--kf-color-bg-gray);
+  background-color: black;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;

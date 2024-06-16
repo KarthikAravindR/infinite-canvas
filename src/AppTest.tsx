@@ -8,17 +8,14 @@ function App() {
   const canvasRef = useRef<ReactInfiniteCanvasHandle>();
 
   return (
-    <div
-      className="workflowContainer"
-      style={{ width: "97vw", height: "98vh", background: "black" }}
-    >
+    <div className="workflowContainer" style={{ height: "98vh" }}>
       <ReactInfiniteCanvas
         ref={canvasRef}
         onCanvasMount={(canvasFunc) => {
-          // canvasFunc.scrollContentHorizontallyCenter({
-          //   offset: 100,
-          //   transitionDuration: 300,
-          // });
+          canvasFunc.scrollContentHorizontallyCenter({
+            offset: 100,
+            transitionDuration: 300,
+          });
           // canvasFunc.fitContentToView({
           //   scale: 1,
           //   duration: 3000,
@@ -28,7 +25,23 @@ function App() {
       >
         <div
           className="thing"
-          style={{ width: "200px", height: "200px", background: "red" }}
+          style={{
+            width: "200px",
+            height: "200px",
+            background: "red",
+            position: "absolute",
+          }}
+        >
+          asdasdsdas
+        </div>
+        <div
+          className="thing2"
+          style={{
+            width: "200px",
+            height: "200px",
+            background: "green",
+            position: "absolute",
+          }}
         >
           asdasdsdas
         </div>

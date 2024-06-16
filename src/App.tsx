@@ -23,10 +23,7 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
 
     return (
       <ReactInfiniteCanvasRenderer innerRef={ref} {...restProps}>
-        <div
-          ref={wrapperRef}
-          style={{ width: "max-content", height: "max-content" }}
-        >
+        <div ref={wrapperRef} style={{ width: "100vw", height: "100vh" }}>
           {clonedChildren}
         </div>
       </ReactInfiniteCanvasRenderer>

@@ -30,7 +30,7 @@
     "*.md",
     "dist"
   ],
-  "author": "Karthik Aravind",
+  "author": "Juliano Silva",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=16",

@@ -2,8 +2,7 @@ import { ReactInfiniteCanvasProps } from "../types";
 import useChildrenStore from "../../store/children";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { pointer, select } from "d3-selection";
-import { drag } from "d3-drag";
+import { select } from "d3-selection";
 import { zoom } from "d3-zoom";
 import {
   memo,
@@ -13,6 +12,7 @@ import {
   useMemo,
   useState,
   useRef,
+  Children,
 } from "react";
 
 import { Background } from "../../main";
@@ -65,7 +65,7 @@ export const ReactInfiniteCanvasRenderer = memo(
     const flowRendererRef = children.ref;
     const isUserPressed = useRef<boolean | null>(null);
 
-    const { childComponentRef } = useChildrenStore();
+    const { childComponentRefs } = useChildrenStore();
 
     const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
@@ -78,18 +78,18 @@ export const ReactInfiniteCanvasRenderer = memo(
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
 
     useEffect(() => {
-      if (!canvasRef.current || !childComponentRef?.current) {
+      // set drag on children components
+      if (!canvasRef.current || !childComponentRefs?.length) {
         return () => {};
       }
-
       const d3Setup = select(canvasRef.current).call(d3Zoom);
       d3Selection.current = d3Setup;
 
-      if (childComponentRef?.current) {
+      for (let i = 0; i < childComponentRefs.length; i++) {
+        const childComponentRef = childComponentRefs[i];
         const childComponentSelection = select(
           `.${childComponentRef.current.className}`
         );
-
         defineDragBehavior({
           childComponentRef,
           childComponentSelection,
@@ -99,7 +99,7 @@ export const ReactInfiniteCanvasRenderer = memo(
       }
 
       return () => d3Setup.on(".zoom", null);
-    }, [canvasRef, childComponentRef, d3Zoom, zoomTransform]);
+    }, [canvasRef, childComponentRefs, d3Zoom, zoomTransform]);
 
     const getCanvasStateMemoized = useCallback(
       () =>
@@ -170,7 +170,7 @@ export const ReactInfiniteCanvasRenderer = memo(
         zoomContainerRef,
         setZoomTransform,
         onCanvasMount,
-        scrollContentHorizontallyCenter: (args) =>
+        scrollContentHorizontallyCenter: (args: any) =>
           scrollContentHorizontallyCenter({
             ...args,
             canvasRef,
@@ -242,7 +242,15 @@ export const ReactInfiniteCanvasRenderer = memo(
                       backgroundColor: "rgba(35, 200, 200, 0.4)",
                     }}
                   >
-                    {children}
+                    {Children.map(children, (child) => (
+                      <div
+                        style={{
+                          position: "absolute",
+                        }}
+                      >
+                        {child}
+                      </div>
+                    ))}{" "}
                   </div>
                 </foreignObject>
               </g>

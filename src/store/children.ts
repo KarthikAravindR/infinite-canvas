@@ -1,13 +1,17 @@
 import { create } from "zustand";
 
 type ChildrenState = {
-  childComponentRef: React.RefObject<any> | null;
+  childComponentRefs: React.RefObject<any>[] | [];
   setRef: (ref: React.RefObject<any>) => void;
 };
 
 const useChildrenStore = create<ChildrenState>((set) => ({
-  childComponentRef: null,
-  setRef: (childComponentRef) => set({ childComponentRef }),
+  childComponentRefs: [],
+  setRef: (childComponentRef) =>
+    set((state) => ({
+      childComponentRefs: Array.isArray(state.childComponentRefs)
+        ? [...state.childComponentRefs, childComponentRef]
+        : [childComponentRef],
+    })),
 }));
-
 export default useChildrenStore;

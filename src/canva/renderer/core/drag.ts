@@ -2,6 +2,7 @@ import { drag, Selection } from "d3-drag";
 import { pointer } from "d3-selection";
 import { RefObject } from "react";
 import styles from "../../../App.module.css";
+import { ZOOM_CONFIGS } from "../../../helpers/constants";
 
 type DragProps = {
   childComponentRef: RefObject<HTMLElement>;
@@ -24,23 +25,48 @@ export const defineDragBehavior = (props: DragProps) => {
   let zoomMultiplier = 1;
   let translateDeltaX = 0;
   let translateDeltaY = 0;
-  const setDrag = drag()
-    .on("start", (e) => {
+  let childComponentWidth = 1;
+  let childComponentHeight = 1;
+  let childComponentBounds: DOMRect | null = null;
+  const setDrag = drag(childComponentRef.current)
+    .on("start", (e: any) => {
       isDragging = true;
+      childComponentBounds =
+        childComponentRef.current?.getBoundingClientRect() || null;
       const [x, y] = pointer(e);
       initialMouseX = x;
       initialMouseY = y;
       zoomMultiplier = 1 / zoomTransform.scale;
       translateDeltaX = (zoomTransform.translateX * 1) / zoomTransform.scale;
       translateDeltaY = (zoomTransform.translateY * 1) / zoomTransform.scale;
+      childComponentWidth = childComponentRef.current?.offsetWidth || 1;
+      childComponentHeight = childComponentRef.current?.offsetHeight || 1;
+      console.log(childComponentRef.current.style.transform);
     })
-    .on("drag", (event) => {
+    .on("drag", (event: any) => {
       const [x, y] = pointer(event);
       const offsetX = x - initialMouseX;
       const offsetY = y - initialMouseY;
+
       if (childComponentRef.current && isDragging) {
-        const translateX = offsetX * zoomMultiplier - translateDeltaX;
-        const translateY = offsetY * zoomMultiplier - translateDeltaY;
+        let translateX = offsetX * zoomMultiplier - translateDeltaX;
+        let translateY = offsetY * zoomMultiplier - translateDeltaY;
+
+        console.log({ offsetY, y, initialMouseY });
+        if (translateX < 0) {
+          translateX = 0;
+        }
+        if (translateY < 0) {
+          translateY = 0;
+        }
+
+        if (translateX >= ZOOM_CONFIGS.DEFAULT_LAYOUT - childComponentWidth) {
+          translateX = ZOOM_CONFIGS.DEFAULT_LAYOUT - childComponentWidth;
+        }
+
+        if (translateY >= ZOOM_CONFIGS.DEFAULT_LAYOUT - childComponentHeight) {
+          translateY = ZOOM_CONFIGS.DEFAULT_LAYOUT - childComponentHeight;
+        }
 
         childComponentRef.current.style.transform = `translate(${translateX}px, ${translateY}px)`;
       }
@@ -52,7 +78,7 @@ export const defineDragBehavior = (props: DragProps) => {
     });
 
   // Continue with setting up behaviors
-  childComponentSelection.on("mouseover", (e) => {
+  childComponentSelection.on("mouseover", (e: any) => {
     canvasWrapperRef?.current?.classList.add(styles.panning);
   });
   childComponentSelection
@@ -61,31 +87,3 @@ export const defineDragBehavior = (props: DragProps) => {
     })
     .call(setDrag);
 };
-
-// export const defineDragBehavior = (
-//   childComponentRef: RefObject<HTMLElement>,
-//   d3Selection: Selection<any, unknown, null, undefined>
-// ) => {
-//   let isDragging = false;
-
-//   const dragBehavior = drag()
-//     .on("start", (e) => {
-//       isDragging = true;
-//       // Actions on drag start
-//     })
-//     .on("drag", (event) => {
-//       const [x, y] = pointer(event);
-//       if (childComponentRef.current && isDragging) {
-//         childComponentRef.current.style.transform = `translate(${x}px, ${y}px)`;
-//       }
-//     })
-//     .on("end", () => {
-//       isDragging = false;
-//       // Actions on drag end
-//     });
-
-//   // // Select the childComponentRef element within the d3Selection
-//   // const childComponentSelection = d3Selection.select(
-//   //   `.${childComponentRef.current?.className}`
-//   // );
-// };
