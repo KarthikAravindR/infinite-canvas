@@ -7,7 +7,6 @@ export const d3Listeners = ({
   panOnScroll,
   onScrollDeltaHandler,
   scrollBarRef,
-  childComponentRef,
 }) => {
   d3Selection.current
     .call(zoom)
@@ -23,12 +22,7 @@ export const d3Listeners = ({
           scrollBarRef,
         }),
       { passive: false, capture: true }
-    )
-    .on("mousemove", (e) => onMouseMove(e, childComponentRef));
-};
-
-const onMouseMove = (e, childComponentRef) => {
-  console.log(e.target === childComponentRef?.current);
+    );
 };
 
 type OnWheelZoomProps = {

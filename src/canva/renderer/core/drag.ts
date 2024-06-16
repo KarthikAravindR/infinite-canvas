@@ -1,37 +1,45 @@
 import { drag, Selection } from "d3-drag";
 import { pointer } from "d3-selection";
 import { RefObject } from "react";
+import styles from "../../../App.module.css";
 
 type DragProps = {
   childComponentRef: RefObject<HTMLElement>;
+  childComponentSelection: Selection<any, unknown, null, undefined>;
 };
 
 export const defineDragBehavior = (props: DragProps) => {
-  const { childComponentRef, ...rest } = props;
+  const { childComponentRef, childComponentSelection, canvasWrapperRef } =
+    props;
 
-  console.log({ props });
-  //   if(rest)
-  //   rest?.on("mouseover", () => {
-  //     console.log("lol");
-  //   });
+  let isDragging = false;
 
-  //   console.log(childComponentSelection);
-
-  const dragBehavior = drag()
+  const setDrag = drag()
     .on("start", (e) => {
+      isDragging = true;
       // Actions on drag start
     })
     .on("drag", (event) => {
       const [x, y] = pointer(event);
-      if (childComponentRef.current) {
+      console.log(x, y);
+      if (childComponentRef.current && isDragging) {
         childComponentRef.current.style.transform = `translate(${x}px, ${y}px)`;
       }
     })
     .on("end", () => {
+      isDragging = false;
       // Actions on drag end
     });
 
-  return dragBehavior;
+  // Continue with setting up behaviors
+  childComponentSelection.on("mouseover", (e) => {
+    canvasWrapperRef.current?.classList.add(styles.panning);
+  });
+  childComponentSelection
+    .on("mouseout", () => {
+      canvasWrapperRef.current?.classList.remove(styles.panning);
+    })
+    .call(setDrag);
 };
 
 // export const defineDragBehavior = (

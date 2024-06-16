@@ -15,16 +15,15 @@ function App() {
       <ReactInfiniteCanvas
         ref={canvasRef}
         onCanvasMount={(canvasFunc) => {
-          console.log(canvasFunc);
-          // canvasFunc.scrollContentHorizontallyCenter({
-          //   offset: 100,
-          //   transitionDuration: 300,
-          // });
-          canvasFunc.fitContentToView({
-            scale: 1,
-            duration: 3000,
-            maxZoomLimit: 1,
+          canvasFunc.scrollContentHorizontallyCenter({
+            offset: 100,
+            transitionDuration: 300,
           });
+          // canvasFunc.fitContentToView({
+          //   scale: 1,
+          //   duration: 3000,
+          //   maxZoomLimit: 1,
+          // });
         }}
       >
         <div

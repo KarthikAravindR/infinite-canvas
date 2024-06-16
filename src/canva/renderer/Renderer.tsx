@@ -85,38 +85,10 @@ export const ReactInfiniteCanvasRenderer = memo(
           `.${childComponentRef.current.className}`
         );
 
-        let isDragging = false;
-
-        const setDrag = drag()
-          .on("start", (e) => {
-            isDragging = true;
-            // Actions on drag start
-          })
-          .on("drag", (event) => {
-            const [x, y] = pointer(event);
-            if (childComponentRef.current && isDragging) {
-              childComponentRef.current.style.transform = `translate(${x}px, ${y}px)`;
-            }
-          })
-          .on("end", () => {
-            isDragging = false;
-            // Actions on drag end
-          });
-
-        // Continue with setting up behaviors
-        childComponentSelection.on("mouseover", (e) => {
-          canvasWrapperRef.current?.classList.add(styles.panning);
-        });
-        childComponentSelection
-          .on("mouseout", () => {
-            canvasWrapperRef.current?.classList.remove(styles.panning);
-          })
-          .call(setDrag);
-        // childComponentSelection.call((props) => dragBehavior(props));
+        defineDragBehavior({ childComponentRef, childComponentSelection });
       }
-      // d3Selection.current.call(dragBehavior);
 
-      return () => d3Setup.on(".zoom", null); // Clean up zoom listeners
+      return () => d3Setup.on(".zoom", null);
     }, [canvasRef, childComponentRef, d3Zoom]);
 
     const getCanvasStateMemoized = useCallback(
@@ -255,7 +227,15 @@ export const ReactInfiniteCanvasRenderer = memo(
                   width={ZOOM_CONFIGS.DEFAULT_LAYOUT}
                   height={ZOOM_CONFIGS.DEFAULT_LAYOUT}
                 >
-                  {children}
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: "rgba(35, 200, 200, 0.4)",
+                    }}
+                  >
+                    {children}
+                  </div>
                 </foreignObject>
               </g>
             </svg>
