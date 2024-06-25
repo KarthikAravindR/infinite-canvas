@@ -245,9 +245,9 @@ export const ScrollBar = forwardRef(
 
     const handleMouseDown = useCallback(
       function mouseDownHandler() {
-        window.addEventListener("mousemove", (event) =>
-          handleScroll(event, userDragConfig.current.vertical)
-        );
+        window.addEventListener("mousemove", (event) => {
+          return handleScroll(event, userDragConfig.current.vertical);
+        });
         window.addEventListener("mouseup", handleMouseUp);
       },
       [handleScroll, handleMouseUp]

@@ -9,13 +9,17 @@
   position: relative;
   width: 100%;
   height: 100%;
+
   overflow: hidden;
-  background-color: var(--kf-color-bg-gray);
-  cursor: grab;
+  background-color: black;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.canvasWrapper.grabbing {
+  cursor: grab;
 }
 
 .canvasWrapper.panning {

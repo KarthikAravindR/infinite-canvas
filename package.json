@@ -30,7 +30,7 @@
     "*.md",
     "dist"
   ],
-  "author": "Karthik Aravind",
+  "author": "Juliano Silva",
   "license": "MIT",
   "peerDependencies": {
     "react": ">=16",
@@ -57,5 +57,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
+  },
+  "dependencies": {
+    "d3-drag": "^3.0.0",
+    "zustand": "^4.5.2"
   }
 }
