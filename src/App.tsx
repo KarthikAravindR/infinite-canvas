@@ -44,6 +44,7 @@ export interface ReactInfiniteCanvasProps {
   maxZoom?: number;
   panOnScroll?: boolean;
   renderScrollBar?: boolean;
+  onActionClick?: (action: string) => void;
   scrollBarConfig?: {
     startingPosition?: {
       x: number;
@@ -162,6 +163,7 @@ const ReactInfiniteCanvasRenderer = memo(
     renderScrollBar = true,
     scrollBarConfig = {},
     backgroundConfig = {},
+    onActionClick,
     onCanvasMount = () => {},
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -268,7 +270,7 @@ const ReactInfiniteCanvasRenderer = memo(
             scale,
             shouldUpdateMaxScale,
             maxScale,
-            transitionDuration
+            transitionDuration,
           }: {
             nodeElement?: HTMLElement;
             offset?: { x: number; y: number };
@@ -519,7 +521,7 @@ const ReactInfiniteCanvasRenderer = memo(
       };
     };
 
-    const onActionClick = useCallback(
+    const handleActionClick = useCallback(
       function actionClickHandler(actionId: string) {
         const canvasNode = select(canvasRef.current);
         const { k: currentScale } = d3Selection.current.property("__zoom");
@@ -570,17 +572,25 @@ const ReactInfiniteCanvasRenderer = memo(
           switch (e.which) {
             case ZOOM_KEY_CODES.ZOOM_IN:
             case ZOOM_KEY_CODES.ZOOM_IN_2:
-              onActionClick(ZOOM_CONTROLS.ZOOM_IN);
+              onActionClick
+                ? onActionClick(ZOOM_CONTROLS.ZOOM_IN)
+                : handleActionClick(ZOOM_CONTROLS.ZOOM_IN);
               break;
             case ZOOM_KEY_CODES.ZOOM_OUT:
             case ZOOM_KEY_CODES.ZOOM_OUT_2:
-              onActionClick(ZOOM_CONTROLS.ZOOM_OUT);
+              onActionClick
+                ? onActionClick(ZOOM_CONTROLS.ZOOM_OUT)
+                : handleActionClick(ZOOM_CONTROLS.ZOOM_OUT);
               break;
             case ZOOM_KEY_CODES.FIT_TO_VIEW:
-              onActionClick(ZOOM_CONTROLS.FIT_TO_VIEW);
+              onActionClick
+                ? onActionClick(ZOOM_CONTROLS.FIT_TO_VIEW)
+                : handleActionClick(ZOOM_CONTROLS.FIT_TO_VIEW);
               break;
             case ZOOM_KEY_CODES.FIT_TO_HUNDRED:
-              onActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED);
+              onActionClick
+                ? onActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED)
+                : handleActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED);
               break;
             default:
               return;
@@ -593,7 +603,7 @@ const ReactInfiniteCanvasRenderer = memo(
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
       },
-      [onActionClick]
+      [onActionClick, handleActionClick]
     );
 
     const onMouseDown = () => {
@@ -642,7 +652,11 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} {...backgroundConfig} />
+        <Background
+          maxZoom={maxZoom}
+          zoomTransform={zoomTransform}
+          {...backgroundConfig}
+        />
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}
