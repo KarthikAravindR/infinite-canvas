@@ -345,11 +345,13 @@ const ReactInfiniteCanvasRenderer = memo(
         offset = { x: 0, y: 0 },
         scale,
         maxZoomLimit = ZOOM_CONFIGS.FIT_TO_VIEW_MAX_ZOOM,
+        disableVerticalCenter = false,
       }: {
         duration?: number;
         offset?: { x: number; y: number };
         scale?: number;
         maxZoomLimit?: number;
+        disableVerticalCenter?: boolean;
       }) {
         requestIdleCallback(
           () => {
@@ -365,19 +367,32 @@ const ReactInfiniteCanvasRenderer = memo(
             const contentWidth = contentBounds.width * scaleDiff;
             const contentHeight = contentBounds.height * scaleDiff;
             const heightRatio = containerHeight / contentHeight;
+            const widthRatio = containerWidth / contentWidth;
+
             const newScale =
               scale ??
               clampValue({
-                value: Math.min(maxZoomLimit, heightRatio),
+                value: Math.min(
+                  maxZoomLimit,
+                  Math.min(heightRatio, widthRatio)
+                ),
                 min: minZoom,
                 max: maxZoom,
               });
 
             // below code calculates the translateX and translateY values to
-            // center the content horizontally and fit content vertically
-            const translateX =
-              (containerWidth - contentWidth * newScale) / 2 + offset.x;
-            const translateY = offset.y;
+            // center the content horizontally and if disableVerticalCenter is false center the content vertically
+            const newWidth = containerWidth - contentWidth * newScale;
+            const newHeight = containerHeight - contentHeight * newScale;
+
+            const canCenterVertically =
+              !disableVerticalCenter && heightRatio > widthRatio;
+
+            const baseTranslateX = newWidth / 2;
+            const baseTranslateY = canCenterVertically ? newHeight / 2 : 0;
+
+            const translateX = baseTranslateX + offset.x;
+            const translateY = baseTranslateY + offset.y;
 
             const newTransform = zoomIdentity
               .translate(translateX, translateY)
