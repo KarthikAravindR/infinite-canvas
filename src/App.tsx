@@ -16,7 +16,6 @@ import React, {
 import { Background } from "./components/Background/background";
 import {
   ZOOM_CONFIGS,
-  ZOOM_CONTROLS,
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
@@ -27,15 +26,6 @@ import { ScrollBar } from "./components/scrollBar/scrollbar";
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const TIME_TO_WAIT = isSafari ? 600 : 300;
-
-const ZOOM_KEY_CODES = {
-  ZOOM_IN: 187,
-  ZOOM_OUT: 189,
-  ZOOM_IN_2: 61,
-  ZOOM_OUT_2: 173,
-  FIT_TO_VIEW: 48,
-  FIT_TO_HUNDRED: 49,
-};
 
 export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
@@ -268,7 +258,7 @@ const ReactInfiniteCanvasRenderer = memo(
             scale,
             shouldUpdateMaxScale,
             maxScale,
-            transitionDuration
+            transitionDuration,
           }: {
             nodeElement?: HTMLElement;
             offset?: { x: number; y: number };
@@ -343,11 +333,13 @@ const ReactInfiniteCanvasRenderer = memo(
         offset = { x: 0, y: 0 },
         scale,
         maxZoomLimit = ZOOM_CONFIGS.FIT_TO_VIEW_MAX_ZOOM,
+        disableVerticalCenter = false,
       }: {
         duration?: number;
         offset?: { x: number; y: number };
         scale?: number;
         maxZoomLimit?: number;
+        disableVerticalCenter?: boolean;
       }) {
         requestIdleCallback(
           () => {
@@ -363,19 +355,32 @@ const ReactInfiniteCanvasRenderer = memo(
             const contentWidth = contentBounds.width * scaleDiff;
             const contentHeight = contentBounds.height * scaleDiff;
             const heightRatio = containerHeight / contentHeight;
+            const widthRatio = containerWidth / contentWidth;
+
             const newScale =
               scale ??
               clampValue({
-                value: Math.min(maxZoomLimit, heightRatio),
+                value: Math.min(
+                  maxZoomLimit,
+                  Math.min(heightRatio, widthRatio)
+                ),
                 min: minZoom,
                 max: maxZoom,
               });
 
             // below code calculates the translateX and translateY values to
-            // center the content horizontally and fit content vertically
-            const translateX =
-              (containerWidth - contentWidth * newScale) / 2 + offset.x;
-            const translateY = offset.y;
+            // center the content horizontally and if disableVerticalCenter is false center the content vertically
+            const newWidth = containerWidth - contentWidth * newScale;
+            const newHeight = containerHeight - contentHeight * newScale;
+
+            const canCenterVertically =
+              !disableVerticalCenter && heightRatio > widthRatio;
+
+            const baseTranslateX = newWidth / 2;
+            const baseTranslateY = canCenterVertically ? newHeight / 2 : 0;
+
+            const translateX = baseTranslateX + offset.x;
+            const translateY = baseTranslateY + offset.y;
 
             const newTransform = zoomIdentity
               .translate(translateX, translateY)
@@ -519,83 +524,6 @@ const ReactInfiniteCanvasRenderer = memo(
       };
     };
 
-    const onActionClick = useCallback(
-      function actionClickHandler(actionId: string) {
-        const canvasNode = select(canvasRef.current);
-        const { k: currentScale } = d3Selection.current.property("__zoom");
-        switch (actionId) {
-          case ZOOM_CONTROLS.FIT_TO_VIEW:
-            fitContentToView({});
-            break;
-
-          case ZOOM_CONTROLS.FIT_TO_HUNDRED:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              1
-            );
-            break;
-
-          case ZOOM_CONTROLS.ZOOM_IN:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              currentScale + ZOOM_CONFIGS.ZOOM_RATIO
-            );
-            break;
-
-          case ZOOM_CONTROLS.ZOOM_OUT:
-            d3Zoom.scaleTo(
-              // @ts-ignore
-              canvasNode.transition().duration(ZOOM_CONFIGS.TIME_FRAME),
-              currentScale - ZOOM_CONFIGS.ZOOM_RATIO
-            );
-            break;
-
-          default:
-            break;
-        }
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [fitContentToView]
-    );
-
-    useEffect(
-      function zoomShortcutHandler() {
-        function onKeyDownHandler(e: KeyboardEvent) {
-          const cmdPressed = e.metaKey || e.ctrlKey;
-          if (!Object.values(ZOOM_KEY_CODES).includes(e.which) || !cmdPressed)
-            return;
-          e.preventDefault();
-          switch (e.which) {
-            case ZOOM_KEY_CODES.ZOOM_IN:
-            case ZOOM_KEY_CODES.ZOOM_IN_2:
-              onActionClick(ZOOM_CONTROLS.ZOOM_IN);
-              break;
-            case ZOOM_KEY_CODES.ZOOM_OUT:
-            case ZOOM_KEY_CODES.ZOOM_OUT_2:
-              onActionClick(ZOOM_CONTROLS.ZOOM_OUT);
-              break;
-            case ZOOM_KEY_CODES.FIT_TO_VIEW:
-              onActionClick(ZOOM_CONTROLS.FIT_TO_VIEW);
-              break;
-            case ZOOM_KEY_CODES.FIT_TO_HUNDRED:
-              onActionClick(ZOOM_CONTROLS.FIT_TO_HUNDRED);
-              break;
-            default:
-              return;
-          }
-        }
-
-        window.addEventListener("keydown", onKeyDownHandler);
-        return () => {
-          window.removeEventListener("keydown", onKeyDownHandler);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      },
-      [onActionClick]
-    );
-
     const onMouseDown = () => {
       const bodyElement = document.body;
       if (bodyElement) {
@@ -642,7 +570,11 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background maxZoom={maxZoom} zoomTransform={zoomTransform} {...backgroundConfig} />
+        <Background
+          maxZoom={maxZoom}
+          zoomTransform={zoomTransform}
+          {...backgroundConfig}
+        />
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}
