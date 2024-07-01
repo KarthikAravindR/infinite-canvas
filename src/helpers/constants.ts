@@ -12,21 +12,14 @@ export const ZOOM_CONFIGS = {
   INITIAL_SCROLLBAR_SIZE: 50,
   MIN_SCROLLBAR_SIZE: 15,
   SCROLL_DELTA_DIFF: 1.5,
-  NODE_Y_OFFSET: 110
-};
-
-export const ZOOM_CONTROLS = {
-  ZOOM_IN: "zoom-in",
-  ZOOM_OUT: "zoom-out",
-  FIT_TO_VIEW: "fit-to-view",
-  FIT_TO_HUNDRED: "fit-to-100"
+  NODE_Y_OFFSET: 110,
 };
 
 export const COMPONENT_POSITIONS = {
   TOP_LEFT: "top-left",
   TOP_RIGHT: "top-right",
   BOTTOM_LEFT: "bottom-left",
-  BOTTOM_CENTER: "bottom-center"
+  BOTTOM_CENTER: "bottom-center",
 };
 
 export const SCROLL_NODE_POSITIONS = {
