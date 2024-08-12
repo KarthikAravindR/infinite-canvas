@@ -19,10 +19,10 @@ import {
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
-import { clampValue, getUpdatedNodePosition } from "./helpers/utils";
+import { clampValue, getUpdatedNodePosition, shouldBlockEvent } from "./helpers/utils";
 
 import styles from "./App.module.css";
-import { ScrollBar } from "./components/scrollBar/scrollbar";
+import { ScrollBar } from "./components/ScrollBar/scrollbar";
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const TIME_TO_WAIT = isSafari ? 600 : 300;
@@ -293,11 +293,16 @@ const ReactInfiniteCanvasRenderer = memo(
         "wheel.zoom",
         (event: {
           preventDefault: () => void;
-          ctrlKey: any;
+          ctrlKey: boolean;
+          metaKey: boolean;
           deltaY: number;
           deltaX: any;
+          target: any;
         }) => {
+          if (shouldBlockEvent(event)) return;
+          
           event.preventDefault();
+
           const currentZoom = d3Selection.current.property("__zoom").k || 1;
 
           if (panOnScroll && !event.ctrlKey) {

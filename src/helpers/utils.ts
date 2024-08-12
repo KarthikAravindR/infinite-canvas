@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { ZOOM_CONFIGS, SCROLL_NODE_POSITIONS } from "./constants";
+import {
+  ZOOM_CONFIGS,
+  SCROLL_NODE_POSITIONS,
+  BLOCK_EVENTS_CLASS,
+} from "./constants";
 
 export const useOnScreen = (
   ref: { current: Element },
@@ -55,8 +59,8 @@ export const getUpdatedNodePosition = ({
   currentTranslateY,
   currentScale,
   updatedScale,
-  customOffset
-}: { 
+  customOffset,
+}: {
   position: string;
   svgBounds: { x: number; y: number; width: number; height: number };
   nodeBounds: { x: number; y: number; width: number; height: number };
@@ -65,7 +69,6 @@ export const getUpdatedNodePosition = ({
   currentScale: number;
   updatedScale: number;
   customOffset: { x: number; y: number };
-
 }) => {
   let [nodeTranslateX, nodeTranslateY, scaleDiff] = [0, 0, 1];
   if (updatedScale !== currentScale) {
@@ -81,7 +84,7 @@ export const getUpdatedNodePosition = ({
           ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.TOP_CENTER:
       nodeTranslateX =
@@ -92,7 +95,7 @@ export const getUpdatedNodePosition = ({
         updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.TOP_RIGHT:
       return {
@@ -104,7 +107,7 @@ export const getUpdatedNodePosition = ({
           customOffset.x,
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.CENTER_LEFT:
       nodeTranslateY =
@@ -115,7 +118,7 @@ export const getUpdatedNodePosition = ({
         updatedX:
           currentTranslateX +
           ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.CENTER_CENTER:
       nodeTranslateX =
@@ -128,7 +131,7 @@ export const getUpdatedNodePosition = ({
           (nodeBounds.height * scaleDiff) / 2);
       return {
         updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.CENTER_RIGHT:
       nodeTranslateY =
@@ -142,7 +145,7 @@ export const getUpdatedNodePosition = ({
             (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
               nodeBounds.width * scaleDiff)) +
           customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_LEFT:
       return {
@@ -154,7 +157,7 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height * scaleDiff)) +
-          customOffset.y
+          customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_CENTER:
       nodeTranslateX =
@@ -168,7 +171,7 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height * scaleDiff)) +
-          customOffset.y
+          customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_RIGHT:
       return {
@@ -183,12 +186,12 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height)) +
-          customOffset.y
+          customOffset.y,
       };
     default:
       return {
         updatedX: currentTranslateX,
-        updatedY: currentTranslateY
+        updatedY: currentTranslateY,
       };
   }
 };
@@ -284,4 +287,44 @@ export const onScrollHandler = ({
     }
   }
   return [newScrollData, newSizeDecrease];
+};
+
+export const getBlockClassName = (
+  shouldBlockScroll: boolean,
+  shouldBlockZoom: boolean
+) => {
+  let blockClassName = "";
+  if (shouldBlockScroll && shouldBlockZoom) {
+    blockClassName = `${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`;
+  } else if (shouldBlockScroll) {
+    blockClassName = `${BLOCK_EVENTS_CLASS.BLOCK_SCROLL_CLASS}`;
+  } else if (shouldBlockZoom) {
+    blockClassName = `${BLOCK_EVENTS_CLASS.BLOCK_ZOOM_CLASS}`;
+  }
+  return blockClassName;
+};
+
+export const shouldBlockEvent = (event: {
+  target: HTMLElement;
+  ctrlKey: boolean;
+  metaKey: boolean;
+}) => {
+  const target = event.target as HTMLElement;
+
+  if (target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`)) return true;
+  
+  const isCtrlKeyPressed = event.ctrlKey || event.metaKey;
+  if (
+    !isCtrlKeyPressed &&
+    target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_SCROLL_CLASS}`)
+  ) {
+    return true;
+  }
+  if (
+    isCtrlKeyPressed &&
+    target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_ZOOM_CLASS}`)
+  ) {
+    return true;
+  }
+  return false;
 };
