@@ -13,13 +13,20 @@ import React, {
   useRef,
 } from "react";
 
-import { Background } from "./components/Background/background";
+import {
+  Background,
+  BackgroundProps,
+} from "./components/Background/background";
 import {
   ZOOM_CONFIGS,
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
-import { clampValue, getUpdatedNodePosition, shouldBlockEvent } from "./helpers/utils";
+import {
+  clampValue,
+  getUpdatedNodePosition,
+  shouldBlockEvent,
+} from "./helpers/utils";
 
 import styles from "./App.module.css";
 import { ScrollBar } from "./components/ScrollBar/scrollbar";
@@ -47,16 +54,7 @@ export interface ReactInfiniteCanvasProps {
     thickness?: string;
     minSize?: string;
   };
-  backgroundConfig?: {
-    id?: string;
-    size?: number;
-    minSize?: number;
-    maxZoom?: number;
-    gap?: number;
-    minOpacity?: number;
-    maxOpacity?: number;
-    elementColor?: string;
-  };
+  backgroundConfig?: BackgroundProps;
   customComponents?: Array<{
     component: JSX.Element;
     position?: string;
@@ -300,7 +298,7 @@ const ReactInfiniteCanvasRenderer = memo(
           target: any;
         }) => {
           if (shouldBlockEvent(event)) return;
-          
+
           event.preventDefault();
 
           const currentZoom = d3Selection.current.property("__zoom").k || 1;
