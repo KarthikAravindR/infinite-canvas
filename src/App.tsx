@@ -19,7 +19,7 @@ import {
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
-import { clampValue, getUpdatedNodePosition, shouldBlockEvent } from "./helpers/utils";
+import { clampValue, getUpdatedNodePosition, shouldBlockEvent, shouldBlockPanEvent } from "./helpers/utils";
 
 import styles from "./App.module.css";
 import { ScrollBar } from "./components/ScrollBar/scrollbar";
@@ -65,6 +65,7 @@ export interface ReactInfiniteCanvasProps {
     className?: string;
   }>;
   onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
+  onZoom?: (event: Event) => void;
 }
 
 export type ReactInfiniteCanvasHandle = {
@@ -153,6 +154,7 @@ const ReactInfiniteCanvasRenderer = memo(
     scrollBarConfig = {},
     backgroundConfig = {},
     onCanvasMount = () => {},
+    onZoom = () => {}
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<any>(null);
@@ -213,7 +215,7 @@ const ReactInfiniteCanvasRenderer = memo(
           : {};
 
         d3Zoom
-          .filter((event: { type: string; ctrlKey: any }) => {
+          .filter(function(event: { type: string; ctrlKey: any }) {
             if (event.type === "mousedown" && !isUserPressed.current) {
               isUserPressed.current = true;
               onMouseDown();
@@ -223,17 +225,22 @@ const ReactInfiniteCanvasRenderer = memo(
           })
           .on(
             "zoom",
-            (event: {
+            function(event: {
               sourceEvent: { ctrlKey: boolean };
               type: string;
               transform: any;
-            }) => {
+            }) {
+              const nativeTarget = event.sourceEvent?.target;
+              if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;
+              onZoom(event);
+
               if (
                 event.sourceEvent?.ctrlKey === false &&
                 event.type === "zoom"
               ) {
                 canvasWrapperRef.current?.classList.add(styles.panning);
               }
+
               const zoomTransform = event.transform;
               const { x: translateX, y: translateY, k: scale } = zoomTransform;
               const div = zoomContainerRef.current;
@@ -300,7 +307,7 @@ const ReactInfiniteCanvasRenderer = memo(
           target: any;
         }) => {
           if (shouldBlockEvent(event)) return;
-          
+
           event.preventDefault();
 
           const currentZoom = d3Selection.current.property("__zoom").k || 1;
@@ -531,6 +538,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
     const onMouseDown = () => {
       const bodyElement = document.body;
+
       if (bodyElement) {
         const mouseDownEvent = new MouseEvent("mousedown", {
           bubbles: true,
