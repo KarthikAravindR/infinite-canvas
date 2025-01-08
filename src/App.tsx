@@ -36,6 +36,7 @@ const TIME_TO_WAIT = isSafari ? 600 : 300;
 
 export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
+  className?: string;
   ref?: any;
   minZoom?: number;
   maxZoom?: number;
@@ -142,6 +143,7 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
 const ReactInfiniteCanvasRenderer = memo(
   ({
     children,
+    className = "",
     innerRef: ref,
     minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
     maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
@@ -551,7 +553,10 @@ const ReactInfiniteCanvasRenderer = memo(
 
     return (
       <div className={styles.container}>
-        <div ref={canvasWrapperRef} className={styles.canvasWrapper}>
+        <div
+          ref={canvasWrapperRef}
+          className={`${styles.canvasWrapper} ${className}`}
+        >
           {isSafari ? (
             <div ref={canvasRef} className={styles.canvas}>
               <div ref={zoomContainerRef}>
@@ -573,11 +578,13 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background
-          maxZoom={maxZoom}
-          zoomTransform={zoomTransform}
-          {...backgroundConfig}
-        />
+        {backgroundConfig.disablePattern ? null : (
+          <Background
+            maxZoom={maxZoom}
+            zoomTransform={zoomTransform}
+            {...backgroundConfig}
+          />
+        )}
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}

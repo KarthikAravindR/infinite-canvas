@@ -24,7 +24,6 @@ export interface BackgroundProps {
 
 export const Background = ({
   id = "",
-  disablePattern = false,
   size = 1,
   minSize = 0.3,
   maxZoom = 4,
@@ -58,7 +57,6 @@ export const Background = ({
         backgroundColor ? { backgroundColor: backgroundColor } : {}
       }
     >
-      {disablePattern ? null : (
         <pattern
           id={patternId}
           x={translateX % scaledGap}
@@ -76,7 +74,6 @@ export const Background = ({
             opacity={dynamicOpacity}
           />
         </pattern>
-      )}
       <rect
         x="0"
         y="0"

@@ -10,7 +10,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: var(--kf-color-bg-gray);
+  background-color: #f5f7fa;
   cursor: grab;
   -webkit-user-select: none;
   -moz-user-select: none;
