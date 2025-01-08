@@ -13,13 +13,21 @@ import React, {
   useRef,
 } from "react";
 
-import { Background } from "./components/Background/background";
+import {
+  Background,
+  BackgroundProps,
+} from "./components/Background/background";
 import {
   ZOOM_CONFIGS,
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
-import { clampValue, getUpdatedNodePosition, shouldBlockEvent, shouldBlockPanEvent } from "./helpers/utils";
+import { 
+  clampValue, 
+  getUpdatedNodePosition, 
+  shouldBlockEvent,
+  shouldBlockPanEvent
+} from "./helpers/utils";
 
 import styles from "./App.module.css";
 import { ScrollBar } from "./components/ScrollBar/scrollbar";
@@ -29,6 +37,7 @@ const TIME_TO_WAIT = isSafari ? 600 : 300;
 
 export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
+  className?: string;
   ref?: any;
   minZoom?: number;
   maxZoom?: number;
@@ -47,16 +56,7 @@ export interface ReactInfiniteCanvasProps {
     thickness?: string;
     minSize?: string;
   };
-  backgroundConfig?: {
-    id?: string;
-    size?: number;
-    minSize?: number;
-    maxZoom?: number;
-    gap?: number;
-    minOpacity?: number;
-    maxOpacity?: number;
-    elementColor?: string;
-  };
+  backgroundConfig?: BackgroundProps;
   customComponents?: Array<{
     component: JSX.Element;
     position?: string;
@@ -145,6 +145,7 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
 const ReactInfiniteCanvasRenderer = memo(
   ({
     children,
+    className = "",
     innerRef: ref,
     minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
     maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
@@ -561,7 +562,10 @@ const ReactInfiniteCanvasRenderer = memo(
 
     return (
       <div className={styles.container}>
-        <div ref={canvasWrapperRef} className={styles.canvasWrapper}>
+        <div
+          ref={canvasWrapperRef}
+          className={`${styles.canvasWrapper} ${className}`}
+        >
           {isSafari ? (
             <div ref={canvasRef} className={styles.canvas}>
               <div ref={zoomContainerRef}>
@@ -583,11 +587,13 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        <Background
-          maxZoom={maxZoom}
-          zoomTransform={zoomTransform}
-          {...backgroundConfig}
-        />
+        {backgroundConfig.disable ? null : (
+          <Background
+            maxZoom={maxZoom}
+            zoomTransform={zoomTransform}
+            {...backgroundConfig}
+          />
+        )}
         {renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}

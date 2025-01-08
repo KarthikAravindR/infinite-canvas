@@ -328,7 +328,7 @@ export const shouldBlockEvent = (event: {
   const target = event.target as HTMLElement;
 
   if (target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`)) return true;
-  
+
   const isCtrlKeyPressed = event.ctrlKey || event.metaKey;
   if (
     !isCtrlKeyPressed &&
