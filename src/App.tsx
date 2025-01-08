@@ -215,7 +215,7 @@ const ReactInfiniteCanvasRenderer = memo(
           : {};
 
         d3Zoom
-          .filter(function(event: { type: string; ctrlKey: any }) {
+          .filter((event: { type: string; ctrlKey: any }) => {
             if (event.type === "mousedown" && !isUserPressed.current) {
               isUserPressed.current = true;
               onMouseDown();
@@ -225,11 +225,11 @@ const ReactInfiniteCanvasRenderer = memo(
           })
           .on(
             "zoom",
-            function(event: {
+            (event: {
               sourceEvent: { ctrlKey: boolean };
               type: string;
               transform: any;
-            }) {
+            }) => {
               const nativeTarget = event.sourceEvent?.target;
               if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;
               onZoom(event);
