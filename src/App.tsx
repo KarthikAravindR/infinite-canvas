@@ -578,7 +578,7 @@ const ReactInfiniteCanvasRenderer = memo(
             </svg>
           )}
         </div>
-        {backgroundConfig.disablePattern ? null : (
+        {backgroundConfig.disable ? null : (
           <Background
             maxZoom={maxZoom}
             zoomTransform={zoomTransform}

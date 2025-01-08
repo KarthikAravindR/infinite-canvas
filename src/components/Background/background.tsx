@@ -5,7 +5,7 @@ import styles from "./styles.module.css";
 
 export interface BackgroundProps {
   id?: string;
-  disablePattern?: boolean;
+  disable?: boolean;
   size?: number;
   minSize?: number;
   maxZoom?: number;
