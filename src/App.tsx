@@ -154,8 +154,7 @@ const ReactInfiniteCanvasRenderer = memo(
     renderScrollBar = true,
     scrollBarConfig = {},
     backgroundConfig = {},
-    onCanvasMount = () => {},
-    onZoom = () => {}
+    onCanvasMount = () => {},    
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<any>(null);
@@ -232,8 +231,7 @@ const ReactInfiniteCanvasRenderer = memo(
               transform: any;
             }) => {
               const nativeTarget = event.sourceEvent?.target;
-              if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;
-              onZoom(event);
+              if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;              
 
               if (
                 event.sourceEvent?.ctrlKey === false &&
