@@ -35,4 +35,5 @@ export const BLOCK_EVENTS_CLASS = {
   BLOCK_EVENTS: "react-infinite-canvas-block-events",
   BLOCK_SCROLL_CLASS: "react-infinite-canvas-block-scroll",
   BLOCK_ZOOM_CLASS: "react-infinite-canvas-block-zoom",
+  BLOCK_PAN_CLASS: "react-infinite-canvas-block-pan",
 }

@@ -22,10 +22,11 @@ import {
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS,
 } from "./helpers/constants";
-import {
-  clampValue,
-  getUpdatedNodePosition,
+import { 
+  clampValue, 
+  getUpdatedNodePosition, 
   shouldBlockEvent,
+  shouldBlockPanEvent
 } from "./helpers/utils";
 
 import styles from "./App.module.css";
@@ -64,6 +65,7 @@ export interface ReactInfiniteCanvasProps {
     className?: string;
   }>;
   onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
+  onZoom?: (event: Event) => void;
 }
 
 export type ReactInfiniteCanvasHandle = {
@@ -152,7 +154,7 @@ const ReactInfiniteCanvasRenderer = memo(
     renderScrollBar = true,
     scrollBarConfig = {},
     backgroundConfig = {},
-    onCanvasMount = () => {},
+    onCanvasMount = () => {},    
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<any>(null);
@@ -228,12 +230,16 @@ const ReactInfiniteCanvasRenderer = memo(
               type: string;
               transform: any;
             }) => {
+              const nativeTarget = event.sourceEvent?.target;
+              if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;              
+
               if (
                 event.sourceEvent?.ctrlKey === false &&
                 event.type === "zoom"
               ) {
                 canvasWrapperRef.current?.classList.add(styles.panning);
               }
+
               const zoomTransform = event.transform;
               const { x: translateX, y: translateY, k: scale } = zoomTransform;
               const div = zoomContainerRef.current;
@@ -531,6 +537,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
     const onMouseDown = () => {
       const bodyElement = document.body;
+
       if (bodyElement) {
         const mouseDownEvent = new MouseEvent("mousedown", {
           bubbles: true,
