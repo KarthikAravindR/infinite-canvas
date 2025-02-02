@@ -303,17 +303,15 @@ export const getBlockClassName = (
     shouldBlockZoom && `${BLOCK_EVENTS_CLASS.BLOCK_ZOOM_CLASS}`,
     shouldBlockPan && `${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`,
   ]
-  .filter(Boolean)
-  .join(" ");
-  return blockClassName;
+    .filter(Boolean)
+    .join(" ");
 };
 
-export const shouldBlockPanEvent = (event: {
-  target: HTMLElement;
-}) => {
+export const shouldBlockPanEvent = (event: { target: HTMLElement }) => {
   const target = event.target as HTMLElement;
   if (
-    target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`)
+    target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`) ||
+    target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`)
   ) {
     return true;
   }

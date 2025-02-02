@@ -230,9 +230,8 @@ const ReactInfiniteCanvasRenderer = memo(
               type: string;
               transform: any;
             }) => {
-              const nativeTarget = event.sourceEvent?.target;
+              const nativeTarget = (event.sourceEvent as MouseEvent)?.target as HTMLElement;
               if (nativeTarget && shouldBlockPanEvent({target: nativeTarget})) return;              
-
               if (
                 event.sourceEvent?.ctrlKey === false &&
                 event.type === "zoom"
