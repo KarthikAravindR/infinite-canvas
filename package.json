@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-canvas",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "An Infinite Canvas Component for React where you can place your component anywhere on the canvas with zoom in, zoom out and panning functionality. It also supports custom components to control the canvas.",
   "main": "./dist/react-infinite-canvas.umd.js",
   "module": "./dist/react-infinite-canvas.es.js",
@@ -9,6 +9,11 @@
     "build": "vite build",
     "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {
+    "import": "./dist/react-infinite-canvas.es.js",
+    "require": "./dist/react-infinite-canvas.umd.js",
+    "types": "./dist/main.d.ts"
   },
   "keywords": [
     "infinite",
@@ -33,19 +38,19 @@
   "author": "Karthik Aravind",
   "license": "MIT",
   "peerDependencies": {
-    "react": ">=16",
-    "react-dom": ">=16"
+    "react": ">=17 <20",
+    "react-dom": ">=17 <20"
   },
   "devDependencies": {
     "@types/d3-selection": "^3.0.10",
     "@types/d3-zoom": "^3.0.8",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
-    "d3-selection": "^3.0.0",
-    "d3-zoom": "^3.0.0",
+    "d3-selection": "3.0.0",
+    "d3-zoom": "3.0.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
