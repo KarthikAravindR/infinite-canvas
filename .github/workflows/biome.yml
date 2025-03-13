@@ -1,0 +1,32 @@
+name: Static code analysis using Biome
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+    paths:
+      - "**/src/**/*.ts"
+      - "**/src/**/*.tsx"
+      - "**/src/**/*.css"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Fetch changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          use_rest_api: true
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+      - name: Run Biome
+        if: steps.changed-files.outputs.all_changed_files != ''
+        run: biome ci ${{ steps.changed-files.outputs.all_changed_files }}

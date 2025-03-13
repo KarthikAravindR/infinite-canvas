@@ -1,4 +1,4 @@
-import { getBlockClassName } from "../../helpers/utils";
+import { getBlockClassName } from "../../helpers/utils.ts";
 
 export interface EventBlockerProps {
   children: React.ReactNode;
@@ -13,8 +13,10 @@ export const EventBlocker: React.FC<EventBlockerProps> = ({
   shouldBlockZoom = true,
   shouldBlockPan = true
 }) => {
-  const blockClassName = getBlockClassName(shouldBlockScroll, shouldBlockZoom, shouldBlockPan);
-  return <div className={`${blockClassName}`}>
-    {children}
-  </div>;
+  const blockClassName = getBlockClassName(
+    shouldBlockScroll,
+    shouldBlockZoom,
+    shouldBlockPan
+  );
+  return <div className={`${blockClassName}`}>{children}</div>;
 };

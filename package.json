@@ -15,6 +15,11 @@
     "require": "./dist/react-infinite-canvas.umd.js",
     "types": "./dist/main.d.ts"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json}": [
+      "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
+    ]
+  },
   "keywords": [
     "infinite",
     "canvas",
@@ -37,23 +42,24 @@
   ],
   "author": "Karthik Aravind",
   "license": "MIT",
+  "resolutions": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "peerDependencies": {
     "react": ">=17 <20",
     "react-dom": ">=17 <20"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.3",
     "@types/d3-selection": "^3.0.10",
+    "@types/d3-transition": "^3.0.9",
     "@types/d3-zoom": "^3.0.8",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
     "d3-selection": "3.0.0",
     "d3-zoom": "3.0.0",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
     "typescript": "^5.2.2",
     "vite": "^5.1.4",
     "vite-plugin-css-injected-by-js": "^3.4.0",

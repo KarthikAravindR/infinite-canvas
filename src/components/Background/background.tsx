@@ -1,5 +1,5 @@
-import { CSSProperties } from "react";
-import { clampValue } from "../../helpers/utils";
+import type { CSSProperties } from "react";
+import { clampValue } from "../../helpers/utils.ts";
 
 import styles from "./styles.module.css";
 
@@ -31,19 +31,19 @@ export const Background = ({
   zoomTransform = {
     scale: 1,
     translateX: 0,
-    translateY: 0,
+    translateY: 0
   },
   className = "",
   minOpacity = 0.8,
   maxOpacity = 1,
   elementColor = "#afb7c7",
-  backgroundColor,
+  backgroundColor
 }: BackgroundProps) => {
   const { scale, translateX, translateY } = zoomTransform;
   const dynamicOpacity = clampValue({
     value: (scale * 10) / (maxZoom * 10),
     min: minOpacity,
-    max: maxOpacity,
+    max: maxOpacity
   });
   const scaledGap = gap * scale;
   const scaledSize = size * scale;
@@ -53,27 +53,27 @@ export const Background = ({
   return (
     <svg
       className={`${className} ${styles.dotSvgContainer}`}
-      style={
-        backgroundColor ? { backgroundColor: backgroundColor } : {}
-      }
+      style={backgroundColor ? { backgroundColor: backgroundColor } : {}}
+      role="img"
+      aria-label="Background pattern"
     >
-        <pattern
-          id={patternId}
-          x={translateX % scaledGap}
-          y={translateY % scaledGap}
-          width={scaledGap}
-          height={scaledGap}
-          patternUnits="userSpaceOnUse"
-          patternTransform={`translate(-${scaledSize},-${scaledSize})`}
-        >
-          <circle
-            cx={circleSize}
-            cy={circleSize}
-            r={circleSize}
-            fill={elementColor}
-            opacity={dynamicOpacity}
-          />
-        </pattern>
+      <pattern
+        id={patternId}
+        x={translateX % scaledGap}
+        y={translateY % scaledGap}
+        width={scaledGap}
+        height={scaledGap}
+        patternUnits="userSpaceOnUse"
+        patternTransform={`translate(-${scaledSize},-${scaledSize})`}
+      >
+        <circle
+          cx={circleSize}
+          cy={circleSize}
+          r={circleSize}
+          fill={elementColor}
+          opacity={dynamicOpacity}
+        />
+      </pattern>
       <rect
         x="0"
         y="0"
