@@ -5,16 +5,16 @@ import {
   Fragment,
   forwardRef,
   useRef,
-  useState,
-  DragEvent,
+  useState
 } from "react";
+import type { DragEvent } from "react";
 
-import { ZOOM_CONFIGS } from "../../helpers/constants";
+import { ZOOM_CONFIGS } from "../../helpers/constants.ts";
 import {
   clampValue,
   getScrollSize,
-  onScrollHandler,
-} from "../../helpers/utils";
+  onScrollHandler
+} from "../../helpers/utils.ts";
 
 import styles from "./styles.module.css";
 
@@ -30,7 +30,7 @@ export const ScrollBar = forwardRef(
       verticalOffsetHeight,
       horizontalOffsetWidth,
       onScrollDeltaHandler,
-      getContainerOffset,
+      getContainerOffset
     }: {
       scale: number;
       startingPosition?: { x: number; y: number };
@@ -58,7 +58,7 @@ export const ScrollBar = forwardRef(
     }>({
       isDragging: false,
       vertical: true,
-      initialOffset: 0,
+      initialOffset: 0
     });
 
     const [scrollConfig, setScrollConfig] = useState<{
@@ -80,7 +80,7 @@ export const ScrollBar = forwardRef(
       verticalPos: startingPosition
         ? startingPosition.y
         : (verticalOffsetHeight ?? 0) / ZOOM_CONFIGS.SCROLL_POS_RATIO,
-      verticalSizeDecrease: 0,
+      verticalSizeDecrease: 0
     });
 
     useImperativeHandle(ref, () => ({
@@ -92,36 +92,43 @@ export const ScrollBar = forwardRef(
           verticalPos:
             (verticalOffsetHeight ?? 0) / ZOOM_CONFIGS.SCROLL_POS_RATIO,
           verticalSizeDecrease: 0,
-          horizontalSizeDecrease: 0,
+          horizontalSizeDecrease: 0
         }));
       },
       onScrollDeltaChangeHandler,
-      onMouseUp: handleMouseUp,
+      onMouseUp: handleMouseUp
     }));
 
     useEffect(
       function onScaleChangeHandler() {
         setScrollConfig((state) => {
-          let newScrollPos;
+          let newScrollPos: { horizontalPos: number; verticalPos: number };
           const [newVerticalSize, newHorizontalSize] = getScrollSize(scale);
           const ratio = scale / state.scale || 0;
           if (scale < state.scale) {
             newScrollPos = {
               horizontalPos: state.horizontalPos - ratio,
-              verticalPos: state.verticalPos - ratio,
+              verticalPos: state.verticalPos - ratio
             };
-          } else {
-            newScrollPos = {
-              horizontalPos: state.horizontalPos + ratio,
-              verticalPos: state.verticalPos + ratio,
+            return {
+              ...state,
+              scale,
+              horizontalSize: newHorizontalSize,
+              verticalSize: newVerticalSize,
+              ...newScrollPos
             };
           }
+
+          newScrollPos = {
+            horizontalPos: state.horizontalPos + ratio,
+            verticalPos: state.verticalPos + ratio
+          };
           return {
             ...state,
             scale,
             horizontalSize: newHorizontalSize,
             verticalSize: newVerticalSize,
-            ...newScrollPos,
+            ...newScrollPos
           };
         });
       },
@@ -138,25 +145,26 @@ export const ScrollBar = forwardRef(
           onScrollHandler({
             state,
             scrollDelta,
-            scrollLength: verticalOffsetHeight!,
+            scrollLength: verticalOffsetHeight ?? 0
           });
         const [newHorizontalScrollData, newHorizontalSizeDecrease] =
           onScrollHandler({
             isVertical: false,
             state,
             scrollDelta,
-            scrollLength: horizontalOffsetWidth!,
+            scrollLength: horizontalOffsetWidth ?? 0
           });
         return {
           ...state,
           horizontalPos: newHorizontalScrollData,
           horizontalSizeDecrease: newHorizontalSizeDecrease,
           verticalPos: newVerticalScrollData,
-          verticalSizeDecrease: newVerticalSizeDecrease,
+          verticalSizeDecrease: newVerticalSizeDecrease
         };
       });
     }
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     const handleScroll = useCallback(
       function resizeHandler(event: MouseEvent, isVertical: boolean) {
         if (!userDragConfig.current.isDragging) return;
@@ -179,17 +187,16 @@ export const ScrollBar = forwardRef(
             return [
               "verticalPos",
               config.verticalSize,
-              verticalOffsetHeight!,
-              offset.y,
-            ] as const;
-          } else {
-            return [
-              "horizontalPos",
-              config.horizontalSize,
-              horizontalOffsetWidth!,
-              offset.x,
+              verticalOffsetHeight ?? 0,
+              offset.y
             ] as const;
           }
+          return [
+            "horizontalPos",
+            config.horizontalSize,
+            horizontalOffsetWidth ?? 0,
+            offset.x
+          ] as const;
         };
 
         setScrollConfig((state) => {
@@ -200,8 +207,8 @@ export const ScrollBar = forwardRef(
             [stateKey]: clampValue({
               value: scrollPos,
               min: scrollOffset,
-              max: scrollLimit - scrollSize,
-            }),
+              max: scrollLimit - scrollSize
+            })
           };
         });
 
@@ -214,12 +221,14 @@ export const ScrollBar = forwardRef(
             ? { deltaX: 0, deltaY: newDelta }
             : {
                 deltaX: newDelta,
-                deltaY: 0,
+                deltaY: 0
               };
         };
 
         const endLimit =
-          (isVertical ? verticalOffsetHeight : horizontalOffsetWidth)! -
+          (isVertical
+            ? (verticalOffsetHeight ?? 0)
+            : (horizontalOffsetWidth ?? 0)) -
           (isVertical
             ? scrollConfig.verticalSize
             : scrollConfig.horizontalSize);
@@ -227,7 +236,6 @@ export const ScrollBar = forwardRef(
 
         if (!isEndReached && diff !== 0) onScrollDeltaHandler(newDeltaValue());
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x]
     );
 
@@ -270,20 +278,20 @@ export const ScrollBar = forwardRef(
               insetBlockStart: `${clampValue({
                 value: scrollConfig.verticalPos,
                 min: offset.y,
-                max: verticalOffsetHeight,
+                max: verticalOffsetHeight
               })}px`,
               height: `${
                 scrollConfig.verticalSize + scrollConfig.verticalSizeDecrease
               }px`,
               background: color,
-              minHeight: minSize,
+              minHeight: minSize
             }}
             onMouseDownCapture={(event) => {
               event.stopPropagation();
               userDragConfig.current = {
                 ...userDragConfig.current,
                 isDragging: true,
-                vertical: true,
+                vertical: true
               };
               handleMouseDown();
             }}
@@ -303,21 +311,21 @@ export const ScrollBar = forwardRef(
               insetInlineStart: `${clampValue({
                 value: scrollConfig.horizontalPos,
                 min: offset.x,
-                max: horizontalOffsetWidth,
+                max: horizontalOffsetWidth
               })}px`,
               width: `${
                 scrollConfig.horizontalSize +
                 scrollConfig.horizontalSizeDecrease
               }px`,
               background: color,
-              minWidth: minSize,
+              minWidth: minSize
             }}
             onMouseDownCapture={(event) => {
               event.stopPropagation();
               userDragConfig.current = {
                 ...userDragConfig.current,
                 isDragging: true,
-                vertical: false,
+                vertical: false
               };
               handleMouseDown();
             }}
