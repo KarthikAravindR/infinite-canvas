@@ -9,12 +9,12 @@ import {
 } from "react";
 import type { DragEvent } from "react";
 
-import { ZOOM_CONFIGS } from "../../helpers/constants.ts";
+import { ZOOM_CONFIGS } from "../../helpers/constants";
 import {
   clampValue,
   getScrollSize,
   onScrollHandler
-} from "../../helpers/utils.ts";
+} from "../../helpers/utils";
 
 import styles from "./styles.module.css";
 

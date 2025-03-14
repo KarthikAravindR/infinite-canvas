@@ -4,7 +4,7 @@ import {
   ZOOM_CONFIGS,
   SCROLL_NODE_POSITIONS,
   BLOCK_EVENTS_CLASS
-} from "./constants.ts";
+} from "./constants";
 
 export const useOnScreen = (
   ref: { current: Element },

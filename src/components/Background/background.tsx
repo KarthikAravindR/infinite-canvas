@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { clampValue } from "../../helpers/utils.ts";
+import { clampValue } from "../../helpers/utils";
 
 import styles from "./styles.module.css";
 

@@ -1,4 +1,4 @@
-import { getBlockClassName } from "../../helpers/utils.ts";
+import { getBlockClassName } from "../../helpers/utils";
 
 export interface EventBlockerProps {
   children: React.ReactNode;

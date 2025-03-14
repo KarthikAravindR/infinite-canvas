@@ -15,21 +15,21 @@ import { zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import {
   Background,
   type BackgroundProps
-} from "./components/Background/background.tsx";
+} from "./components/Background/background";
 import {
   ZOOM_CONFIGS,
   SCROLL_NODE_POSITIONS,
   COMPONENT_POSITIONS
-} from "./helpers/constants.ts";
+} from "./helpers/constants";
 import {
   clampValue,
   getUpdatedNodePosition,
   shouldBlockEvent,
   shouldBlockPanEvent
-} from "./helpers/utils.ts";
+} from "./helpers/utils";
 
 import styles from "./App.module.css";
-import { ScrollBar } from "./components/ScrollBar/scrollbar.tsx";
+import { ScrollBar } from "./components/ScrollBar/scrollbar";
 
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const TIME_TO_WAIT = isSafari ? 600 : 300;
@@ -67,7 +67,7 @@ export interface ReactInfiniteCanvasProps {
   onZoom?: (event: Event) => void;
 }
 
-interface CanvasState {
+export interface CanvasState {
   canvasNode: Selection<
     SVGSVGElement | HTMLDivElement | null,
     unknown,
