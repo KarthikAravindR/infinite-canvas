@@ -1,0 +1,11 @@
+name: "Update Changelog"
+on:
+  push:
+    branches: [main]
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npx auto-changelog -p

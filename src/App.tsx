@@ -41,8 +41,8 @@ export interface ReactInfiniteCanvasProps {
   minZoom?: number;
   maxZoom?: number;
   panOnScroll?: boolean;
-  renderScrollBar?: boolean;
   scrollBarConfig?: {
+    renderScrollBar?: boolean;
     startingPosition?: {
       x: number;
       y: number;
@@ -169,7 +169,6 @@ const ReactInfiniteCanvasRenderer = memo(
     maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
     panOnScroll = true,
     customComponents = [],
-    renderScrollBar = true,
     scrollBarConfig = {},
     backgroundConfig = {},
     onCanvasMount = () => {}
@@ -336,9 +335,9 @@ const ReactInfiniteCanvasRenderer = memo(
         }) => {
           if (
             shouldBlockEvent({ ...event, target: event.target as HTMLElement })
-          )
+          ) {
             return;
-
+          }
           event.preventDefault();
 
           const currentZoom = d3Selection.current.property("__zoom").k || 1;
@@ -647,7 +646,7 @@ const ReactInfiniteCanvasRenderer = memo(
             {...backgroundConfig}
           />
         )}
-        {renderScrollBar && canvasWrapperRef.current && (
+        {scrollBarConfig.renderScrollBar && canvasWrapperRef.current && (
           <ScrollBar
             ref={scrollBarRef}
             scale={zoomTransform.scale}
