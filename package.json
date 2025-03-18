@@ -35,7 +35,7 @@
     "integration"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=20.19.0"
   },
   "files": [
     "*.md",
