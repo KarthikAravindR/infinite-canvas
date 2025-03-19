@@ -51,6 +51,7 @@
     "@biomejs/biome": "1.9.3",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
     "@types/d3-selection": "^3.0.10",
     "@types/d3-transition": "^3.0.9",
