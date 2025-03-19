@@ -1,3 +1,10 @@
+## [3.3.1](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.3.0...v3.3.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* added tag log in release action ([500d2c0](https://github.com/KarthikAravindR/infinite-canvas/commit/500d2c08e52a0018bf199c8659838e8d0e689d39))
+
 # 3.3.0 (2025-03-19)
 
 ### History: All changes
