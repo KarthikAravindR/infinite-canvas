@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write # Required for GitHub releases
+  packages: write # Required if using GitHub Packages
+
 jobs:
   release:
     runs-on: ubuntu-latest
