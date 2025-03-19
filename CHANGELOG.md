@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.4.0...v3.4.1) (2025-03-19)
+
+
+### Bug Fixes
+
+* added run build in release ([94b9dbb](https://github.com/KarthikAravindR/infinite-canvas/commit/94b9dbb96e5230859c445e3c1cb227a27077f9ab))
+
 ## [3.3.2](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.3.1...v3.3.2) (2025-03-19)
 
 
