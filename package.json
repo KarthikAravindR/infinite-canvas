@@ -1,6 +1,6 @@
 {
   "name": "react-infinite-canvas",
-  "version": "3.3.0",
+  "version": "1.0.3",
   "description": "An Infinite Canvas Component for React where you can place your component anywhere on the canvas with zoom in, zoom out and panning functionality. It also supports custom components to control the canvas.",
   "main": "./dist/react-infinite-canvas.umd.js",
   "module": "./dist/react-infinite-canvas.es.js",

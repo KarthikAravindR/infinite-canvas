@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/KarthikAravindR/infinite-canvas/compare/v1.0.2...v1.0.3) (2025-03-19)
+
+
+### Bug Fixes
+
+* npm publish action ([e60a546](https://github.com/KarthikAravindR/infinite-canvas/commit/e60a546328253235abbbc3be3d3636c4642ab29b))
+
 # 3.3.0 (2025-03-19)
 
 ### Bug Fixes
