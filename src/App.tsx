@@ -246,13 +246,20 @@ const ReactInfiniteCanvasRenderer = memo(
         : null;
 
       d3Zoom
-        .filter((event: { type: string; ctrlKey: boolean }) => {
+        .filter((event: MouseEvent | WheelEvent | TouchEvent) => {
+          if (event.type === "wheel") return (event as WheelEvent).ctrlKey;
+          // d3's default: primary button only, no ctrl+click
+          if ((event as MouseEvent).button || event.ctrlKey) return false;
+          if (
+            event.target instanceof Element &&
+            shouldBlockPanEvent({ target: event.target as HTMLElement })
+          )
+            return false;
           if (event.type === "mousedown" && !isUserPressed.current) {
             isUserPressed.current = true;
             onMouseDown();
           }
-
-          return event.ctrlKey || event.type !== "wheel";
+          return true;
         })
         .on(
           "zoom",
@@ -261,10 +268,6 @@ const ReactInfiniteCanvasRenderer = memo(
             type: string;
             transform: { k: number; x: number; y: number };
           }) => {
-            const nativeTarget = (event.sourceEvent as MouseEvent)
-              ?.target as HTMLElement;
-            if (nativeTarget && shouldBlockPanEvent({ target: nativeTarget }))
-              return;
             if (event.sourceEvent?.ctrlKey === false && event.type === "zoom") {
               canvasWrapperRef.current?.classList.add(styles.panning);
             }
