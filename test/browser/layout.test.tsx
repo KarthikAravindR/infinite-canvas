@@ -82,7 +82,7 @@ test("background draws a dot pattern; backgroundConfig.disable removes it", asyn
 });
 
 // B6: every Background uses the same pattern id, so two canvases collide.
-test.fails("two canvases get different background patterns", async () => {
+test("two canvases get different background patterns", async () => {
   await render(
     <>
       {[1, 2].map((n) => (
@@ -111,4 +111,9 @@ test("bottom-center component is horizontally centered", async () => {
   const h = center(host);
   const c = center(host.querySelector('[data-testid="bc"]') as Element);
   expect(Math.abs(c.x - h.x)).toBeLessThanOrEqual(1);
+});
+
+test("an explicit background id keeps the patternId- prefix", async () => {
+  const { host } = await renderCanvas({ backgroundConfig: { id: "x" } });
+  expect(host.querySelector("pattern")?.id).toBe("patternId-x");
 });

@@ -23,6 +23,13 @@ export interface BackgroundProps {
   backgroundColor?: CSSProperties["backgroundColor"];
 }
 
+let counter = 0;
+// React 17 has no useId, so fall back to a module counter. Chosen once, at load.
+const useStableId: () => string =
+  typeof React.useId === "function"
+    ? React.useId
+    : () => React.useState(() => String(++counter))[0];
+
 export const Background = ({
   id = "",
   size = 1,
@@ -49,7 +56,9 @@ export const Background = ({
   const scaledGap = gap * scale;
   const scaledSize = size * scale;
   const circleSize = Math.max(minSize, scaledSize);
-  const patternId = `patternId-${id}`;
+  // Strip characters such as the colons in React 18 ids: the id goes inside url(#...).
+  const stableId = useStableId().replace(/[^A-Za-z0-9_-]/g, "");
+  const patternId = id ? `patternId-${id}` : `ric-pattern-${stableId}`;
 
   return (
     <svg
