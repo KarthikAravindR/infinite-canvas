@@ -8,7 +8,11 @@ An Infinite Canvas Component for React where you can place your component anywhe
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [API](#api)
+- [Props](#props)
+- [Handle methods](#handle-methods)
+- [EventBlocker](#eventblocker)
+- [Accessibility](#accessibility)
+- [Support policy](#support-policy)
 
 ## Installation
 
@@ -20,59 +24,225 @@ npm install react-infinite-canvas
 
 StackBlitz Example: https://stackblitz.com/edit/react-infinite-canvas-workflow?file=src/App.tsx&terminal=dev
 
-```jsx
-import { useRef } from "react";
-import { ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "react-infinite-canvas";
+Give the canvas a parent with a fixed size. The canvas fills its parent. The example uses `createRoot`, which needs React 18 or later. On React 17, use `ReactDOM.render`.
 
-import { COMPONENT_POSITIONS } from "./helpers/constants";
-import ReactDOM from "react-dom";
+```tsx
+import { useRef } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  COMPONENT_POSITIONS,
+  ReactInfiniteCanvas,
+  type ReactInfiniteCanvasHandle,
+  type ZoomState,
+} from "react-infinite-canvas";
+
+// A custom component that is a React component (not a DOM element)
+// receives a `zoomState` prop.
+const ZoomLabel = ({
+  zoomState,
+}: {
+  zoomState?: ZoomState & { minZoom: number; maxZoom: number };
+}) => <span>Zoom: {zoomState?.scale.toFixed(2)}</span>;
 
 const InfiniteCanvas = () => {
-  const canvasRef = useRef<ReactInfiniteCanvasHandle>();
+  const canvasRef = useRef<ReactInfiniteCanvasHandle>(null);
   return (
-    <>
-      <div style={{ width: "700px", height: "400px", border: "1px solid red" }}>
-        <ReactInfiniteCanvas
-          ref={canvasRef}
-          onCanvasMount={(mountFunc: ReactInfiniteCanvasHandle) => {
-            mountFunc.fitContentToView({ scale: 1 });
-          }}
-          customComponents={[
-            {
-              component: (
-                <button
-                  onClick={() => {
-                    canvasRef.current?.fitContentToView({ scale: 1 });
-                  }}
-                >
-                  fitToView
-                </button>
-              ),
-              position: COMPONENT_POSITIONS.TOP_LEFT,
-              offset: { x: 120, y: 10 },
-            },
-          ]}
-        >
-          <div style={{ width: "200px", height: "200px", background: "red" }}>
-            asdasdsdas
-          </div>
-        </ReactInfiniteCanvas>
-      </div>
-    </>
+    <div style={{ width: "700px", height: "400px", border: "1px solid red" }}>
+      <ReactInfiniteCanvas
+        ref={canvasRef}
+        onCanvasMount={(canvas) => {
+          canvas.fitContentToView({ scale: 1 });
+        }}
+        onZoom={({ translateX, translateY, scale }) => {
+          console.log(translateX, translateY, scale);
+        }}
+        customComponents={[
+          {
+            component: <ZoomLabel />,
+            position: COMPONENT_POSITIONS.TOP_LEFT,
+            offset: { x: 120, y: 10 },
+          },
+        ]}
+      >
+        <div style={{ width: "200px", height: "200px", background: "red" }}>
+          Content
+        </div>
+      </ReactInfiniteCanvas>
+    </div>
   );
 };
 
-ReactDOM.render(<InfiniteCanvas />, document.getElementById("root"));
+createRoot(document.getElementById("root")!).render(<InfiniteCanvas />);
 ```
 
-## API
+## Props
 
-| Property         | Type      | Default                                                                                                                            | Description                                                             |
-| ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| children         | ReactNode | -                                                                                                                                  | Element to be placed inside the canvas                                  |
-| minZoom          | number    | 0.1                                                                                                                                | minimum limit for zooming                                               |
-| maxZoom          | number    | 4                                                                                                                                  | maximum limit for zooming                                               |
-| panOnScroll      | boolean   | true                                                                                                                               | when user scrolls in canvas, instead of zooming, the content scrolls    |
-| scrollBarConfig  | object    | { renderScrollBar: true, startingPosition: { x: 0, y: 0}, offset: { x: 0, y: 0}, color: "grey", thickness: "8px", minSize: "15px } | To style the scrollbar to your preference                               |
-| customComponents | object    | -                                                                                                                                  | An array of components you can pass to render on canvas at any position |
-| onCanvasMount    | function  | -                                                                                                                                  | A function that is triggered once the canvas is mounted                 |
+`ReactInfiniteCanvas` takes these props. Only `children` is required.
+
+| Prop               | Type                                          | Default | Description                                                                                                           |
+| ------------------ | --------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `children`         | `JSX.Element`                                 | -       | One element to place on the canvas.                                                                                   |
+| `className`        | `string`                                      | `""`    | Class name added to the element that holds the canvas.                                                                |
+| `ref`              | `ReactInfiniteCanvasHandle`                   | -       | Gives access to the [handle methods](#handle-methods).                                                                |
+| `minZoom`          | `number`                                      | `0.1`   | Lowest scale the user can zoom to.                                                                                    |
+| `maxZoom`          | `number`                                      | `4`     | Highest scale the user can zoom to.                                                                                   |
+| `panOnScroll`      | `boolean`                                     | `true`  | `true`: the wheel pans, and ctrl+wheel zooms. `false`: the wheel zooms.                                               |
+| `panOnFocus`       | `boolean`                                     | `true`  | Pans to center an element that gets focus while it is outside the visible area. See [Pan on focus](#pan-on-focus).    |
+| `scrollBarConfig`  | `object`                                      | `{}`    | Scrollbar settings. The scrollbar is off unless `renderScrollBar` is `true`. See [scrollBarConfig](#scrollbarconfig). |
+| `backgroundConfig` | `BackgroundProps`                             | `{}`    | Settings for the dotted background. See [backgroundConfig](#backgroundconfig).                                        |
+| `customComponents` | `Array<object>`                               | `[]`    | Components drawn on top of the canvas that do not move with it. See [customComponents](#customcomponents).            |
+| `onCanvasMount`    | `(handle: ReactInfiniteCanvasHandle) => void` | -       | Called once, when the canvas mounts. It receives the [handle methods](#handle-methods).                               |
+| `onZoom`           | `(zoomState: ZoomState) => void`              | -       | Called on every transform change. See [onZoom](#onzoom).                                                              |
+
+### onZoom
+
+`onZoom` receives `{ translateX, translateY, scale }`. The canvas calls it for every change:
+
+- panning and wheel scrolling
+- ctrl+wheel zoom
+- every animation frame of `fitContentToView`, `scrollNodeToCenter`, `scrollNodeHandler` and `scrollContentHorizontallyCenter`
+
+The canvas always calls the latest `onZoom` you passed.
+
+### Pan on focus
+
+When an element inside the canvas gets focus and sits partly or fully outside the visible area, the canvas pans to center it. This lets keyboard users reach every element.
+
+- It does not pan when the element is already fully visible.
+- It does not pan during a mouse press.
+- It still pans for focus inside an `EventBlocker` that blocks panning, so keyboard users can reach it.
+
+Set `panOnFocus={false}` to turn this off.
+
+### scrollBarConfig
+
+The scrollbar is **off** by default. Set `renderScrollBar: true` to show it.
+
+| Field              | Type                       | Default                                  | Description                       |
+| ------------------ | -------------------------- | ---------------------------------------- | --------------------------------- |
+| `renderScrollBar`  | `boolean`                  | `undefined` (off)                        | Shows the scrollbars when `true`. |
+| `startingPosition` | `{ x: number; y: number }` | one third of the canvas width and height | Starting position of the thumbs.  |
+| `offset`           | `{ x: number; y: number }` | `{ x: 0, y: 0 }`                         | Moves the scrollbars.             |
+| `color`            | `string`                   | `"gray"`                                 | Color of the thumbs.              |
+| `thickness`        | `string`                   | `"8px"`                                  | Width of the bars.                |
+| `minSize`          | `string`                   | `"15px"`                                 | Smallest size of a thumb.         |
+
+### backgroundConfig
+
+The canvas draws a dotted background. Use `backgroundConfig` to change it, or `backgroundConfig={{ disable: true }}` to remove it. You can also render `Background` yourself.
+
+| Field             | Type      | Default     | Description                                        |
+| ----------------- | --------- | ----------- | -------------------------------------------------- |
+| `disable`         | `boolean` | `undefined` | Removes the background when `true`.                |
+| `id`              | `string`  | `""`        | Id for the SVG pattern. Generated when empty.      |
+| `size`            | `number`  | `1`         | Dot size at scale 1.                               |
+| `minSize`         | `number`  | `0.3`       | Smallest dot size, however far the user zooms out. |
+| `gap`             | `number`  | `20`        | Space between dots at scale 1.                     |
+| `className`       | `string`  | `""`        | Class name for the background element.             |
+| `minOpacity`      | `number`  | `0.8`       | Lowest dot opacity.                                |
+| `maxOpacity`      | `number`  | `1`         | Highest dot opacity.                               |
+| `elementColor`    | `string`  | `"#afb7c7"` | Dot color.                                         |
+| `backgroundColor` | CSS color | `undefined` | Background color.                                  |
+
+`maxZoom` and `zoomTransform` also exist on `Background`. The canvas sets both for you.
+
+### customComponents
+
+Each item draws one component on top of the canvas. It stays in place while the canvas moves.
+
+| Field       | Type                       | Default                           | Description                                                                               |
+| ----------- | -------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `component` | `JSX.Element`              | required                          | The element to draw.                                                                      |
+| `position`  | `string`                   | `COMPONENT_POSITIONS.BOTTOM_LEFT` | One of the `COMPONENT_POSITIONS` values. An unknown value falls back to the default.      |
+| `offset`    | `{ x: number; y: number }` | `{ x: 0, y: 0 }`                  | Distance in pixels from the chosen edge. For `BOTTOM_CENTER`, `x` shifts from the center. |
+| `overlap`   | `boolean`                  | `true`                            | `true`: draws above the canvas content (`z-index` 20). `false`: `z-index` 1.              |
+| `className` | `string`                   | `""`                              | Class name for the wrapper around the component.                                          |
+
+`COMPONENT_POSITIONS` has `TOP_LEFT`, `TOP_RIGHT`, `BOTTOM_LEFT` and `BOTTOM_CENTER`.
+
+If `component` is a React component, it receives a `zoomState` prop: `{ translateX, translateY, scale, minZoom, maxZoom }`. DOM elements such as `<button>` do not receive it.
+
+## Handle methods
+
+Get the handle from the `ref` or from `onCanvasMount`. All five methods take one options object. Every field is optional unless noted.
+
+| Method                                     | What it does                                                             |
+| ------------------------------------------ | ------------------------------------------------------------------------ |
+| `scrollNodeToCenter(options)`              | Moves an element to the center of the view.                              |
+| `scrollNodeHandler(options)`               | Moves an element to a position you choose.                               |
+| `scrollContentHorizontallyCenter(options)` | Centers the content horizontally. Keeps the vertical position and scale. |
+| `fitContentToView(options)`                | Scales and centers the content so it fits the view.                      |
+| `getCanvasState()`                         | Returns the d3 objects and the current position.                         |
+
+The animated methods call `onZoom` on every frame.
+
+### scrollNodeToCenter and scrollNodeHandler
+
+`scrollNodeToCenter` is `scrollNodeHandler` with `position` set to `SCROLL_NODE_POSITIONS.CENTER_CENTER`.
+
+| Option                 | Type                       | Default                            | Description                                                                                       |
+| ---------------------- | -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `nodeElement`          | `HTMLElement`              | -                                  | The element to move. Without it, nothing happens.                                                 |
+| `offset`               | `{ x: number; y: number }` | `{ x: 0, y: 0 }`                   | Extra shift in pixels.                                                                            |
+| `scale`                | `number`                   | current scale                      | Scale to end at.                                                                                  |
+| `shouldUpdateMaxScale` | `boolean`                  | `true`                             | `true`: the end scale is at least the current scale. `false`: `scale` is used as given.           |
+| `maxScale`             | `number`                   | none                               | Upper limit for the end scale.                                                                    |
+| `transitionDuration`   | `number`                   | `300`                              | Animation time in milliseconds.                                                                   |
+| `position`             | `string`                   | `SCROLL_NODE_POSITIONS.TOP_CENTER` | `scrollNodeHandler` only. Where the element ends up. An unknown value keeps the current position. |
+
+`SCROLL_NODE_POSITIONS` has `TOP_LEFT`, `TOP_RIGHT`, `TOP_CENTER`, `BOTTOM_LEFT`, `BOTTOM_CENTER`, `BOTTOM_RIGHT`, `CENTER_LEFT`, `CENTER_RIGHT` and `CENTER_CENTER`.
+
+### scrollContentHorizontallyCenter
+
+| Option               | Type     | Default | Description                       |
+| -------------------- | -------- | ------- | --------------------------------- |
+| `offset`             | `number` | `0`     | Extra horizontal shift in pixels. |
+| `transitionDuration` | `number` | `300`   | Animation time in milliseconds.   |
+
+### fitContentToView
+
+| Option         | Type                       | Default          | Description                                                                                      |
+| -------------- | -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------ |
+| `duration`     | `number`                   | `500`            | Animation time in milliseconds.                                                                  |
+| `offset`       | `{ x: number; y: number }` | `{ x: 0, y: 0 }` | Extra shift in pixels.                                                                           |
+| `scale`        | `number`                   | fitted scale     | Scale to use. Without it, the canvas picks the scale that fits, between `minZoom` and `maxZoom`. |
+| `maxZoomLimit` | `number`                   | `1`              | Highest scale the fitted scale can reach. Ignored when you pass `scale`.                         |
+
+### getCanvasState
+
+Returns `{ canvasNode, zoomNode, currentPosition, d3Zoom }`. `canvasNode` and `zoomNode` are d3 selections. `currentPosition` is `{ k, x, y }`. `d3Zoom` is the d3 zoom behavior.
+
+## EventBlocker
+
+Wrap content in `EventBlocker` when it needs its own mouse or wheel behavior, such as a scrollable list or a map. Each flag defaults to `true`.
+
+```tsx
+import { EventBlocker } from "react-infinite-canvas";
+
+<EventBlocker shouldBlockScroll shouldBlockZoom={false}>
+  <div style={{ overflow: "auto", height: 200 }}>...</div>
+</EventBlocker>;
+```
+
+| Prop                | Type      | Default | Effect over the blocker                                                            |
+| ------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
+| `shouldBlockPan`    | `boolean` | `true`  | Dragging does not pan the canvas.                                                  |
+| `shouldBlockScroll` | `boolean` | `true`  | The plain wheel does not pan the canvas. Ctrl+wheel still zooms it.                |
+| `shouldBlockZoom`   | `boolean` | `true`  | Ctrl+wheel (or cmd+wheel) does not zoom the canvas. The plain wheel still pans it. |
+
+With all three flags `true`, the canvas ignores every wheel event over the blocker.
+
+## Accessibility
+
+- The canvas has `role="group"` and `aria-label="Infinite canvas"`.
+- The background and the scrollbars are hidden from screen readers.
+- `panOnFocus` brings focused elements into view.
+
+## Support policy
+
+| Area                         | 3.x                                                | v4                                         |
+| ---------------------------- | -------------------------------------------------- | ------------------------------------------ |
+| React                        | 17-19 (tests run on 18 and 19)                     | `^18.0.0 \|\| ^19.0.0` (tests run on both) |
+| Browsers                     | Latest 2 versions of Chrome, Edge, Firefox, Safari | Same                                       |
+| Node (server rendering only) | 20.19+                                             | Active LTS lines                           |
+| TypeScript (consumers)       | Types checked with 5.9 and 7.x                     | Same                                       |
