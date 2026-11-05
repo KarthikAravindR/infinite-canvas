@@ -70,7 +70,7 @@ export interface ReactInfiniteCanvasProps {
 
 export interface CanvasState {
   canvasNode: Selection<
-    SVGAElement | HTMLDivElement | null,
+    SVGSVGElement | HTMLDivElement | null,
     unknown,
     null,
     undefined
@@ -82,7 +82,7 @@ export interface CanvasState {
     undefined
   >;
   currentPosition: { k: number; x: number; y: number };
-  d3Zoom: ZoomBehavior<HTMLDivElement | SVGAElement, unknown>;
+  d3Zoom: ZoomBehavior<HTMLDivElement | SVGSVGElement, unknown>;
 }
 
 export type ZoomState = {
@@ -208,13 +208,13 @@ const ReactInfiniteCanvasRenderer = memo(
 
     // Created once: the mount effect attaches it, so a replacement would never be attached.
     const [d3Zoom] = useState(() =>
-      zoom<SVGAElement | HTMLDivElement, unknown>(),
+      zoom<SVGSVGElement | HTMLDivElement, unknown>(),
     );
     useEffect(() => {
       d3Zoom.scaleExtent([minZoom, maxZoom]);
     }, [d3Zoom, minZoom, maxZoom]);
     const d3Selection = useRef<Selection<
-      SVGAElement | HTMLDivElement,
+      SVGSVGElement | HTMLDivElement,
       unknown,
       null,
       undefined
@@ -265,7 +265,7 @@ const ReactInfiniteCanvasRenderer = memo(
     // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     useEffect(function zoomAndPanHandler() {
       const selection = select(
-        canvasRef.current as SVGAElement | HTMLDivElement,
+        canvasRef.current as SVGSVGElement | HTMLDivElement,
       ).call(d3Zoom);
       d3Selection.current = selection;
       // Same name as the wheel listener d3 registered in .call() above, so it
