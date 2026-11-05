@@ -61,8 +61,7 @@ export const Background = ({
     <svg
       className={`${className} ${styles.dotSvgContainer}`}
       style={backgroundColor ? { backgroundColor: backgroundColor } : {}}
-      role="img"
-      aria-label="Background pattern"
+      aria-hidden="true"
     >
       <pattern
         id={patternId}

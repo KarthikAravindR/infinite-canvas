@@ -42,6 +42,7 @@ export interface ReactInfiniteCanvasProps {
   minZoom?: number;
   maxZoom?: number;
   panOnScroll?: boolean;
+  panOnFocus?: boolean;
   scrollBarConfig?: {
     renderScrollBar?: boolean;
     startingPosition?: {
@@ -181,6 +182,7 @@ const ReactInfiniteCanvasRenderer = memo(
     minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
     maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
     panOnScroll = true,
+    panOnFocus = true,
     customComponents = [],
     scrollBarConfig = {},
     backgroundConfig = {},
@@ -220,9 +222,9 @@ const ReactInfiniteCanvasRenderer = memo(
       undefined
     > | null>(null);
     // Props the mount-time listeners read at event time.
-    const latest = useRef({ panOnScroll, onZoom });
+    const latest = useRef({ panOnScroll, panOnFocus, onZoom });
     useEffect(() => {
-      latest.current = { panOnScroll, onZoom };
+      latest.current = { panOnScroll, panOnFocus, onZoom };
     });
 
     const [zoomTransform, setZoomTransform] = useState({
@@ -398,8 +400,39 @@ const ReactInfiniteCanvasRenderer = memo(
       const resizeObserver = new ResizeObserver(measure);
       if (wrapper) resizeObserver.observe(wrapper);
 
+      // Keyboard focus on an off-screen element pans it into view. The browser also
+      // scrolls the overflow:hidden wrapper to reveal it; undo that hidden offset.
+      const onFocusIn = (event: FocusEvent) => {
+        const target = event.target;
+        if (!latest.current.panOnFocus || !wrapper) return;
+        if (!(target instanceof HTMLElement)) return;
+        const t = target.getBoundingClientRect();
+        const w = wrapper.getBoundingClientRect();
+        if (
+          t.left < w.left ||
+          t.top < w.top ||
+          t.right > w.right ||
+          t.bottom > w.bottom
+        ) {
+          scrollNodeHandler({
+            nodeElement: target,
+            position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
+          });
+        }
+      };
+      const resetScroll = () => {
+        if (wrapper) {
+          wrapper.scrollTop = 0;
+          wrapper.scrollLeft = 0;
+        }
+      };
+      wrapper?.addEventListener("focusin", onFocusIn);
+      wrapper?.addEventListener("scroll", resetScroll);
+
       // On unmount (and Strict Mode's simulated one), remove d3's listeners and ours.
       return () => {
+        wrapper?.removeEventListener("focusin", onFocusIn);
+        wrapper?.removeEventListener("scroll", resetScroll);
         resizeObserver.disconnect();
         selection.on(".zoom", null);
       };
@@ -633,7 +666,13 @@ const ReactInfiniteCanvasRenderer = memo(
           className={`${styles.canvasWrapper} ${className}`}
         >
           {isSafari ? (
-            <div ref={canvasRef} className={styles.canvas}>
+            <div
+              ref={canvasRef}
+              className={styles.canvas}
+              aria-label="Infinite canvas"
+              // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot be the zoom surface
+              role="group"
+            >
               <div ref={zoomContainerRef}>
                 <div className={styles.contentWrapper}>{children}</div>
               </div>
@@ -643,7 +682,8 @@ const ReactInfiniteCanvasRenderer = memo(
               ref={canvasRef}
               className={styles.canvas}
               aria-label="Infinite canvas"
-              role="application"
+              // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot be the zoom surface
+              role="group"
             >
               <g ref={zoomContainerRef}>
                 <foreignObject
