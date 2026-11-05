@@ -9,9 +9,11 @@
   "scripts": {
     "build": "vite build && npm run build:types",
     "dev": "vite",
+    "lint": "biome ci src",
     "typecheck": "tsc --noEmit",
     "test:dist": "TEST_DIST=1 vitest run --project browser",
     "test": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "build:types": "tsc -p tsconfig.build.json && api-extractor run --local && node -e \"const fs=require('fs');fs.copyFileSync('dist/main.d.ts','dist/main.d.cts');fs.rmSync('dist/types',{recursive:true})\""
   },
   "exports": {
