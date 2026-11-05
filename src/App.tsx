@@ -31,7 +31,9 @@ import {
 import styles from "./App.module.css";
 import { ScrollBar } from "./components/ScrollBar/scrollbar";
 
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const isSafari =
+  typeof navigator !== "undefined" &&
+  /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
