@@ -239,27 +239,36 @@ export const ScrollBar = forwardRef(
       [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x],
     );
 
+    const moveListener = useRef<((event: MouseEvent) => void) | null>(null);
+
+    const removeMoveListener = useCallback(function removeMoveListener() {
+      if (moveListener.current) {
+        window.removeEventListener("mousemove", moveListener.current);
+        moveListener.current = null;
+      }
+    }, []);
+
     const handleMouseUp = useCallback(
       function mouseUpHandler() {
         userDragConfig.current.isDragging = false;
         userDragConfig.current.initialOffset = 0;
-        window.removeEventListener("mousemove", (event) =>
-          handleScroll(event, userDragConfig.current.vertical),
-        );
-        window.removeEventListener("mouseup", handleMouseUp);
+        removeMoveListener();
       },
-      [handleScroll],
+      [removeMoveListener],
     );
 
     const handleMouseDown = useCallback(
       function mouseDownHandler() {
-        window.addEventListener("mousemove", (event) =>
-          handleScroll(event, userDragConfig.current.vertical),
-        );
-        window.addEventListener("mouseup", handleMouseUp);
+        removeMoveListener();
+        moveListener.current = (event) =>
+          handleScroll(event, userDragConfig.current.vertical);
+        window.addEventListener("mousemove", moveListener.current);
+        window.addEventListener("mouseup", handleMouseUp, { once: true });
       },
-      [handleScroll, handleMouseUp],
+      [handleScroll, handleMouseUp, removeMoveListener],
     );
+
+    useEffect(() => removeMoveListener, [removeMoveListener]);
 
     const dragHandler = (event: DragEvent) => {
       event.stopPropagation();

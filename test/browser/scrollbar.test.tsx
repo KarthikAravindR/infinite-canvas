@@ -21,7 +21,7 @@ test.fails("scrollbar renders on mount", async () => {
 
 // B4: each thumb drag leaves another window listener behind, so later drags
 // pan further. The warm-up drag mounts the scrollbar (B16).
-test.fails("scrollbar drag pans the same distance every time", async () => {
+test("scrollbar drag pans the same distance every time", async () => {
   const { host, node, empty } = await renderCanvas({
     scrollBarConfig: { renderScrollBar: true },
   });
@@ -33,5 +33,6 @@ test.fails("scrollbar drag pans the same distance every time", async () => {
     await drag(from, { x: from.x + 5, y: from.y });
     deltas.push(contentPosition(node).x - before);
   }
+  expect(deltas[0]).toBeLessThan(0);
   expect(deltas).toEqual([deltas[0], deltas[0], deltas[0], deltas[0]]);
 });
