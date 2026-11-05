@@ -3,6 +3,7 @@ export type {
   CanvasState,
   ReactInfiniteCanvasProps,
   ReactInfiniteCanvasHandle,
+  ZoomState,
 } from "./App";
 export {
   COMPONENT_POSITIONS,

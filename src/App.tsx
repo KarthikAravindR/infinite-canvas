@@ -65,12 +65,12 @@ export interface ReactInfiniteCanvasProps {
     className?: string;
   }>;
   onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
-  onZoom?: (event: Event) => void;
+  onZoom?: (zoomState: ZoomState) => void;
 }
 
 export interface CanvasState {
   canvasNode: Selection<
-    SVGSVGElement | HTMLDivElement | null,
+    SVGAElement | HTMLDivElement | null,
     unknown,
     null,
     undefined
@@ -84,6 +84,12 @@ export interface CanvasState {
   currentPosition: { k: number; x: number; y: number };
   d3Zoom: ZoomBehavior<HTMLDivElement | SVGAElement, unknown>;
 }
+
+export type ZoomState = {
+  translateX: number;
+  translateY: number;
+  scale: number;
+};
 
 export type ReactInfiniteCanvasHandle = {
   scrollNodeToCenter: ({
@@ -179,6 +185,7 @@ const ReactInfiniteCanvasRenderer = memo(
     scrollBarConfig = {},
     backgroundConfig = {},
     onCanvasMount = () => {},
+    onZoom,
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<DOMRect | null>(null);
@@ -213,9 +220,9 @@ const ReactInfiniteCanvasRenderer = memo(
       undefined
     > | null>(null);
     // Props the mount-time listeners read at event time.
-    const latest = useRef({ panOnScroll });
+    const latest = useRef({ panOnScroll, onZoom });
     useEffect(() => {
-      latest.current = { panOnScroll };
+      latest.current = { panOnScroll, onZoom };
     });
 
     const [zoomTransform, setZoomTransform] = useState({
@@ -330,6 +337,7 @@ const ReactInfiniteCanvasRenderer = memo(
             const { x: translateX, y: translateY, k: scale } = zoomTransform;
             const div = zoomContainerRef.current;
             setZoomTransform({ translateX, translateY, scale });
+            latest.current.onZoom?.({ translateX, translateY, scale });
             if (isSafari && div) {
               div.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             } else {

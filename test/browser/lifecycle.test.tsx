@@ -87,12 +87,21 @@ test("wheel over one canvas does not move another", async () => {
   });
 });
 
-// B11: onZoom is not called while panning.
-test.fails("onZoom reports the transform on pan", async () => {
+test("onZoom reports the transform on pan", async () => {
   const onZoom = vi.fn();
   const { empty } = await renderCanvas({ onZoom });
   await drag(empty, { x: empty.x - 50, y: empty.y - 30 });
   expect(onZoom.mock.lastCall).toEqual([
     { translateX: -50, translateY: -30, scale: 1 },
   ]);
+});
+
+test("onZoom uses the latest callback after a rerender", async () => {
+  const first = vi.fn();
+  const second = vi.fn();
+  const { empty, rerender } = await renderCanvas({ onZoom: first });
+  await rerender({ onZoom: second });
+  await drag(empty, { x: empty.x - 50, y: empty.y - 30 });
+  expect(first).not.toHaveBeenCalled();
+  expect(second).toHaveBeenCalled();
 });

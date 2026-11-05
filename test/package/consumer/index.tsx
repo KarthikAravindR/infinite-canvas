@@ -11,6 +11,7 @@ import type {
   EventBlockerProps,
   ReactInfiniteCanvasHandle,
   ReactInfiniteCanvasProps,
+  ZoomState,
 } from "react-infinite-canvas";
 
 declare const s: CanvasState;
@@ -18,7 +19,8 @@ declare const s: CanvasState;
 const n: number = s.d3Zoom;
 
 declare const handle: ReactInfiniteCanvasHandle;
-const props: ReactInfiniteCanvasProps = { children: <div /> };
+const onZoom = (z: ZoomState) => z.scale;
+const props: ReactInfiniteCanvasProps = { children: <div />, onZoom };
 const bg: BackgroundProps = {};
 const blocker: EventBlockerProps = { children: null };
 
