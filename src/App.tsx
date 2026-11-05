@@ -397,8 +397,12 @@ const ReactInfiniteCanvasRenderer = memo(
             : { width: wrapper.offsetWidth, height: wrapper.offsetHeight },
         );
       measure();
-      const resizeObserver = new ResizeObserver(measure);
-      if (wrapper) resizeObserver.observe(wrapper);
+      // jsdom has no ResizeObserver; the size is then only measured on mount.
+      const resizeObserver =
+        typeof ResizeObserver === "undefined"
+          ? null
+          : new ResizeObserver(measure);
+      if (wrapper) resizeObserver?.observe(wrapper);
 
       // Keyboard focus on an off-screen element pans it into view. The browser also
       // scrolls the overflow:hidden wrapper to reveal it; undo that hidden offset.
@@ -434,7 +438,7 @@ const ReactInfiniteCanvasRenderer = memo(
       return () => {
         wrapper?.removeEventListener("focusin", onFocusIn);
         wrapper?.removeEventListener("scroll", resetScroll);
-        resizeObserver.disconnect();
+        resizeObserver?.disconnect();
         selection.on(".zoom", null);
       };
     }, []);
