@@ -9,7 +9,9 @@
   "scripts": {
     "build": "vite build && npm run build:types",
     "dev": "vite",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit",
+    "test:dist": "TEST_DIST=1 vitest run --project browser",
+    "test": "vitest run",
     "build:types": "tsc -p tsconfig.build.json && api-extractor run --local && node -e \"const fs=require('fs');fs.copyFileSync('dist/main.d.ts','dist/main.d.cts');fs.rmSync('dist/types',{recursive:true})\""
   },
   "exports": {
@@ -64,16 +66,24 @@
     "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
     "@types/d3-transition": "^3.0.9",
-    "@types/react": ">=17 <20",
-    "@types/react-dom": ">=17 <20",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.0",
     "d3-selection": "3.0.0",
     "d3-zoom": "3.0.0",
     "esbuild": "^0.28.2",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "semantic-release": "^24.2.3",
     "typescript": "^5.9.3",
     "vite": "^8.3.5",
-    "vite-plugin-css-injected-by-js": "^5.0.3"
+    "vite-plugin-css-injected-by-js": "^5.0.3",
+    "vitest": "^5.1.0",
+    "vitest-browser-react": "^2.3.0"
   },
   "repository": {
     "type": "git",

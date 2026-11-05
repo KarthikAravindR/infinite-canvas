@@ -22,9 +22,9 @@
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["d3-transition"],
+    "types": ["d3-transition", "node"],
     "allowJs": true
   },
-  "include": ["src", "vite.config.ts", "./biome.json"],
+  "include": ["src", "test", "vite.config.ts", "vitest.config.ts", "./biome.json"],
   "exclude": ["node_modules", "dist"]
 }
