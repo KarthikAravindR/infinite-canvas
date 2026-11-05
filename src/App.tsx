@@ -404,7 +404,8 @@ const ReactInfiniteCanvasRenderer = memo(
       // scrolls the overflow:hidden wrapper to reveal it; undo that hidden offset.
       const onFocusIn = (event: FocusEvent) => {
         const target = event.target;
-        if (!latest.current.panOnFocus || !wrapper) return;
+        if (!latest.current.panOnFocus || isUserPressed.current || !wrapper)
+          return;
         if (!(target instanceof HTMLElement)) return;
         const t = target.getBoundingClientRect();
         const w = wrapper.getBoundingClientRect();

@@ -1,5 +1,11 @@
 import { expect, test } from "vitest";
-import { renderCanvas, settle } from "./helpers";
+import {
+  contentPosition,
+  fire,
+  nextFrame,
+  renderCanvas,
+  settle,
+} from "./helpers";
 
 const farButton = (
   <button
@@ -104,4 +110,38 @@ test("the canvas is a labelled group", async () => {
   const group = host.querySelector('[role="group"]');
   expect(group?.getAttribute("aria-label")).toBe("Infinite canvas");
   expect(host.querySelector('[role="application"]')).toBeNull();
+});
+
+test("focus during a pointer press does not pan against the drag", async () => {
+  const { host, content, at } = await renderCanvas(
+    {},
+    {},
+    {
+      extraContent: (
+        <button
+          type="button"
+          data-testid="edge"
+          style={{ position: "absolute", left: 540, top: 100, width: 120 }}
+        >
+          edge
+        </button>
+      ),
+    },
+  );
+  const button = host.querySelector('[data-testid="edge"]') as HTMLElement;
+  const before = contentPosition(content);
+  const from = at(570, 110);
+  fire("mousedown", from);
+  button.focus();
+  let prev = from;
+  for (let i = 1; i <= 4; i++) {
+    const p = { x: from.x - 10 * i, y: from.y - 5 * i };
+    fire("mousemove", p, { movementX: p.x - prev.x, movementY: p.y - prev.y });
+    prev = p;
+    await nextFrame();
+  }
+  fire("mouseup", prev);
+  await afterPanWindow();
+  const after = contentPosition(content);
+  expect([after.x - before.x, after.y - before.y]).toEqual([-40, -20]);
 });
