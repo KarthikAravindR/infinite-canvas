@@ -404,12 +404,22 @@ const ReactInfiniteCanvasRenderer = memo(
           : new ResizeObserver(measure);
       if (wrapper) resizeObserver?.observe(wrapper);
 
+      // A press (mouse, touch or pen) focuses what it lands on; panning then would
+      // move the content under the pointer. Tracked here because d3's filter
+      // returns before it sees presses on pan-blocked targets.
+      let pressed = false;
+      const onDown = () => {
+        pressed = true;
+      };
+      const onUp = () => {
+        pressed = false;
+      };
+
       // Keyboard focus on an off-screen element pans it into view. The browser also
       // scrolls the overflow:hidden wrapper to reveal it; undo that hidden offset.
       const onFocusIn = (event: FocusEvent) => {
         const target = event.target;
-        if (!latest.current.panOnFocus || isUserPressed.current || !wrapper)
-          return;
+        if (!latest.current.panOnFocus || pressed || !wrapper) return;
         if (!(target instanceof HTMLElement)) return;
         const t = target.getBoundingClientRect();
         const w = wrapper.getBoundingClientRect();
@@ -431,11 +441,17 @@ const ReactInfiniteCanvasRenderer = memo(
           wrapper.scrollLeft = 0;
         }
       };
+      wrapper?.addEventListener("pointerdown", onDown, true);
+      window.addEventListener("pointerup", onUp, true);
+      window.addEventListener("pointercancel", onUp, true);
       wrapper?.addEventListener("focusin", onFocusIn);
       wrapper?.addEventListener("scroll", resetScroll);
 
       // On unmount (and Strict Mode's simulated one), remove d3's listeners and ours.
       return () => {
+        wrapper?.removeEventListener("pointerdown", onDown, true);
+        window.removeEventListener("pointerup", onUp, true);
+        window.removeEventListener("pointercancel", onUp, true);
         wrapper?.removeEventListener("focusin", onFocusIn);
         wrapper?.removeEventListener("scroll", resetScroll);
         resizeObserver?.disconnect();
