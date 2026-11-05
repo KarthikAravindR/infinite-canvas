@@ -1,41 +1,85 @@
-name: "Release"
+name: Release
+
 on:
   push:
-    branches: [main]
+    branches: [main, v3]
 
-permissions:
-  contents: write # Required for GitHub releases
-  packages: write # Required if using GitHub Packages
+permissions: {}
 
 jobs:
-  release:
+  release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          fetch-depth: 0 # Required for Semantic Release
-          ref: main
-          token: ${{ secrets.PAT_TOKEN }}
+          target-branch: ${{ github.ref_name }}
 
-      - name: Use Node.js 20.19.0
-        uses: actions/setup-node@v3
+  # Runs the full check, which fetches tools from the registry, without the
+  # OIDC token permission.
+  verify:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 20.19.0
+          ref: ${{ needs.release-please.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '^24.5.0'
+          package-manager-cache: false
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run check
 
-      - name: Debug Git Tags
+  publish:
+    needs: [release-please, verify]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '^24.5.0' # Node 24.5.0+ bundles npm 11.5.1+
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Check npm >= 11.5.1 (required for trusted publishing)
         run: |
-          git fetch --tags --force
-          git tag -l | sort -V
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build package
-        run: npm run build
-
-      - name: Run Semantic Release
+          npm -v
+          node -e 'const [a, b, c] = process.argv[1].split(".").map(Number); process.exit(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))) ? 0 : 1)' "$(npm -v)"
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Publish to npm
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }} # Use PAT instead of GITHUB_TOKEN
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+          VERSION: ${{ needs.release-please.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          case "$VERSION" in
+            *-*) tag=next ;;
+            *) if [ "$BRANCH" = v3 ]; then tag=v3; else tag=latest; fi ;;
+          esac
+          if [ "$BRANCH" = v3 ] && [ "${VERSION%%.*}" != 3 ]; then
+            echo "::error::Branch v3 produced version $VERSION. Refusing to publish."
+            exit 1
+          fi
+          echo "Publishing $VERSION with dist-tag $tag"
+          npm publish --tag "$tag"

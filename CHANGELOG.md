@@ -1,3 +1,5 @@
+# Changelog
+
 ## [3.4.1](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.4.0...v3.4.1) (2025-03-19)
 
 
