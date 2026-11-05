@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
   center,
   contentPosition,
@@ -72,4 +72,15 @@ test("getCanvasState reports the position", async () => {
     x: currentPosition.x,
     y: currentPosition.y,
   }).toEqual({ k: 1, x: -50, y: -30 });
+});
+
+// B1: the methods call requestIdleCallback unconditionally, so they throw
+// where it is missing (WebKit). Phase 2 switches this to `test`.
+test.fails("imperative methods work without requestIdleCallback", async () => {
+  vi.stubGlobal("requestIdleCallback", undefined);
+  const { ref, host, content } = await renderCanvas();
+  ref.current?.fitContentToView({ duration: 0 });
+  await expect
+    .poll(() => relative(host, contentPosition(content)).x)
+    .toBe(100);
 });

@@ -1,8 +1,10 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { EventBlocker } from "../../src/main";
 import {
+  center,
   contentPosition,
   drag,
+  fire,
   renderCanvas,
   wheel,
   type Point,
@@ -72,4 +74,29 @@ test("pan works on empty canvas next to a blocker", async () => {
     x: -50,
     y: -30,
   });
+});
+
+// B2: a drag that starts on a pan-blocked box leaves stale state, so the next
+// pan jumps by that drag's distance. Phase 2 switches this to `test`.
+test.fails("blocked drag does not make the next pan jump", async () => {
+  const { node, blocked, empty } = await renderCanvas();
+  const before = contentPosition(node);
+  const start = center(blocked);
+  await drag(start, { x: start.x + 60, y: start.y + 40 });
+  await drag(empty, { x: empty.x + 1, y: empty.y });
+  const after = contentPosition(node);
+  expect({ x: after.x - before.x, y: after.y - before.y }).toEqual({
+    x: 1,
+    y: 0,
+  });
+});
+
+// B3: the blocker swallows mousedown before the child's React handler sees it.
+test.fails("onMouseDown fires inside a pan-blocked EventBlocker", async () => {
+  const onMouseDown = vi.fn();
+  const { blocked } = await renderCanvas({}, { onMouseDown });
+  const p = center(blocked);
+  fire("mousedown", p);
+  fire("mouseup", p);
+  expect(onMouseDown).toHaveBeenCalledTimes(1);
 });

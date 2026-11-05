@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
-import { COMPONENT_POSITIONS } from "../../src/main";
-import { renderCanvas } from "./helpers";
+import { render } from "vitest-browser-react";
+import { COMPONENT_POSITIONS, ReactInfiniteCanvas } from "../../src/main";
+import { center, renderCanvas } from "./helpers";
 
 const offset = { x: 10, y: 20 };
 
@@ -78,4 +79,36 @@ test("background draws a dot pattern; backgroundConfig.disable removes it", asyn
   expect(host.querySelectorAll("pattern").length).toBe(1);
   await rerender({ backgroundConfig: { disable: true } });
   expect(host.querySelectorAll("pattern").length).toBe(0);
+});
+
+// B6: every Background uses the same pattern id, so two canvases collide.
+test.fails("two canvases get different background patterns", async () => {
+  await render(
+    <>
+      {[1, 2].map((n) => (
+        <div key={n} style={{ width: 300, height: 200 }}>
+          <ReactInfiniteCanvas>
+            <div />
+          </ReactInfiniteCanvas>
+        </div>
+      ))}
+    </>,
+  );
+  const ids = Array.from(document.querySelectorAll("pattern")).map((p) => p.id);
+  expect(new Set(ids).size).toBe(2);
+});
+
+// B7: the bottom-center slot has no horizontal centering.
+test.fails("bottom-center component is horizontally centered", async () => {
+  const { host } = await renderCanvas({
+    customComponents: [
+      {
+        component: <div data-testid="bc" style={{ width: 30, height: 30 }} />,
+        position: COMPONENT_POSITIONS.BOTTOM_CENTER,
+      },
+    ],
+  });
+  const h = center(host);
+  const c = center(host.querySelector('[data-testid="bc"]') as Element);
+  expect(Math.abs(c.x - h.x)).toBeLessThanOrEqual(1);
 });
