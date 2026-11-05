@@ -52,6 +52,26 @@ test("scrollNodeToCenter centers a node", async () => {
     .toBe(true);
 });
 
+test("scrollNodeToCenter centers the node when the page is scrolled", async () => {
+  const spacer = document.createElement("div");
+  spacer.style.height = "2000px";
+  document.body.prepend(spacer);
+  try {
+    window.scrollTo(0, 1000);
+    const { ref, host, node } = await renderCanvas();
+    ref.current?.scrollNodeToCenter({ nodeElement: node as HTMLElement, transitionDuration: 0 });
+    await expect
+      .poll(() => {
+        const c = relative(host, center(node));
+        return Math.abs(c.x - 300) <= 1 && Math.abs(c.y - 200) <= 1;
+      })
+      .toBe(true);
+  } finally {
+    spacer.remove();
+    window.scrollTo(0, 0);
+  }
+});
+
 test("scrollContentHorizontallyCenter centers the content", async () => {
   const { ref, host, content } = await renderCanvas();
   ref.current?.scrollContentHorizontallyCenter({ transitionDuration: 0 });
