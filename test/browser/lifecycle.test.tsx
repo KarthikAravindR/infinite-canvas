@@ -97,6 +97,18 @@ test("onZoom reports the transform on pan", async () => {
   ]);
 });
 
+// An in-flight transition (or drag) must not call onZoom after unmount.
+test("onZoom is not called after unmount", async () => {
+  const onZoom = vi.fn();
+  const { ref, unmount } = await renderCanvas({ onZoom });
+  ref.current!.fitContentToView({ duration: 300 });
+  await expect.poll(() => onZoom.mock.calls.length).toBeGreaterThan(0);
+  await unmount();
+  const callsAtUnmount = onZoom.mock.calls.length;
+  await new Promise((r) => setTimeout(r, 500));
+  expect(onZoom).toHaveBeenCalledTimes(callsAtUnmount);
+});
+
 test("onZoom uses the latest callback after a rerender", async () => {
   const first = vi.fn();
   const second = vi.fn();

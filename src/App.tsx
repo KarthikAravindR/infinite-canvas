@@ -331,6 +331,8 @@ const ReactInfiniteCanvasRenderer = memo(
             type: string;
             transform: { k: number; x: number; y: number };
           }) => {
+            // Unmounted: a drag can still emit zoom events after the cleanup.
+            if (!canvasWrapperRef.current) return;
             if (event.sourceEvent?.ctrlKey === false && event.type === "zoom") {
               canvasWrapperRef.current?.classList.add(styles.panning);
             }
@@ -449,6 +451,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
       // On unmount (and Strict Mode's simulated one), remove d3's listeners and ours.
       return () => {
+        selection.interrupt(); // stop an in-flight transition
         wrapper?.removeEventListener("pointerdown", onDown, true);
         window.removeEventListener("pointerup", onUp, true);
         window.removeEventListener("pointercancel", onUp, true);
