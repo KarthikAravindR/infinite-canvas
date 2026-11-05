@@ -79,7 +79,7 @@ test("pan works on empty canvas next to a blocker", async () => {
 });
 
 // B2: a drag that starts on a pan-blocked box leaves stale state, so the next
-// pan jumps by that drag's distance. Phase 2 switches this to `test`.
+// pan jumps by that drag's distance.
 test("blocked drag does not make the next pan jump", async () => {
   const { node, blocked, empty } = await renderCanvas();
   const before = contentPosition(node);
@@ -111,34 +111,37 @@ test.runIf(server.browser === "chromium")(
     const touchSupport = vi
       .spyOn(navigator, "maxTouchPoints", "get")
       .mockReturnValue(1);
-    const { node, blocked } = await renderCanvas();
-    const before = contentPosition(node);
-    const p = center(blocked);
-    const touch = (dx: number) =>
-      new Touch({
-        identifier: 1,
-        target: blocked,
-        clientX: p.x + dx,
-        clientY: p.y,
-      });
-    const send = (type: string, dx: number, ended = false) => {
-      const t = touch(dx);
-      blocked.dispatchEvent(
-        new TouchEvent(type, {
-          bubbles: true,
-          cancelable: true,
-          touches: ended ? [] : [t],
-          targetTouches: ended ? [] : [t],
-          changedTouches: [t],
-        }),
-      );
-    };
-    send("touchstart", 0);
-    send("touchmove", 30);
-    send("touchmove", 60);
-    send("touchend", 60, true);
-    await settle();
-    expect(contentPosition(node)).toEqual(before);
-    touchSupport.mockRestore();
+    try {
+      const { node, blocked } = await renderCanvas();
+      const before = contentPosition(node);
+      const p = center(blocked);
+      const touch = (dx: number) =>
+        new Touch({
+          identifier: 1,
+          target: blocked,
+          clientX: p.x + dx,
+          clientY: p.y,
+        });
+      const send = (type: string, dx: number, ended = false) => {
+        const t = touch(dx);
+        blocked.dispatchEvent(
+          new TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: ended ? [] : [t],
+            targetTouches: ended ? [] : [t],
+            changedTouches: [t],
+          }),
+        );
+      };
+      send("touchstart", 0);
+      send("touchmove", 30);
+      send("touchmove", 60);
+      send("touchend", 60, true);
+      await settle();
+      expect(contentPosition(node)).toEqual(before);
+    } finally {
+      touchSupport.mockRestore();
+    }
   },
 );
