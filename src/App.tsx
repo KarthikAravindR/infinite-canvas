@@ -337,7 +337,6 @@ const ReactInfiniteCanvasRenderer = memo(
             const { x: translateX, y: translateY, k: scale } = zoomTransform;
             const div = zoomContainerRef.current;
             setZoomTransform({ translateX, translateY, scale });
-            latest.current.onZoom?.({ translateX, translateY, scale });
             if (isSafari && div) {
               div.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             } else {
@@ -346,6 +345,7 @@ const ReactInfiniteCanvasRenderer = memo(
                 `translate(${translateX},${translateY}) scale(${scale})`,
               );
             }
+            latest.current.onZoom?.({ translateX, translateY, scale });
           },
         );
 
@@ -714,13 +714,7 @@ const CustomComponentWrapper = ({
   position: string;
   offset: { x: number; y: number };
   overlap: boolean;
-  zoomState: {
-    translateX: number;
-    translateY: number;
-    scale: number;
-    minZoom: number;
-    maxZoom: number;
-  };
+  zoomState: ZoomState & { minZoom: number; maxZoom: number };
   className: string;
 }) => {
   const positionStyle = useMemo(() => {

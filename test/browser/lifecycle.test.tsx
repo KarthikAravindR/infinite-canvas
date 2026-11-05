@@ -6,6 +6,7 @@ import {
 } from "../../src/main";
 import {
   center,
+  consoleCalls,
   contentPosition,
   drag,
   nextFrame,
@@ -104,4 +105,34 @@ test("onZoom uses the latest callback after a rerender", async () => {
   await drag(empty, { x: empty.x - 50, y: empty.y - 30 });
   expect(first).not.toHaveBeenCalled();
   expect(second).toHaveBeenCalled();
+});
+
+test("a throwing onZoom does not stop the pan from moving the node", async () => {
+  const errors: string[] = [];
+  const onError = (e: ErrorEvent) => {
+    errors.push(e.message);
+    e.preventDefault();
+  };
+  window.addEventListener("error", onError);
+  try {
+    const { node, empty } = await renderCanvas({
+      onZoom: () => {
+        throw new Error("consumer bug");
+      },
+    });
+    const before = contentPosition(node);
+    await drag(empty, { x: empty.x - 50, y: empty.y - 30 });
+    const after = contentPosition(node);
+    expect(errors.some((m) => m.includes("consumer bug"))).toBe(true);
+    expect({ x: after.x - before.x, y: after.y - before.y }).toEqual({
+      x: -50,
+      y: -30,
+    });
+  } finally {
+    window.removeEventListener("error", onError);
+    // The browser also logs the uncaught error to the console; it is expected here.
+    for (let i = consoleCalls.length - 1; i >= 0; i--) {
+      if (consoleCalls[i].includes("consumer bug")) consoleCalls.splice(i, 1);
+    }
+  }
 });
