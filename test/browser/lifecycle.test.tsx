@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import type { ReactInfiniteCanvasHandle } from "../../src/main";
-import { center, drag, renderCanvas, wheel } from "./helpers";
+import { center, drag, nextFrame, renderCanvas, wheel } from "./helpers";
 
 test("onCanvasMount receives the handle", async () => {
   let handle: ReactInfiniteCanvasHandle | undefined;
@@ -12,6 +12,14 @@ test("onCanvasMount receives the handle", async () => {
     "scrollNodeHandler",
     "scrollNodeToCenter",
   ]);
+});
+
+test("unmounting during a pending fitContentToView does not throw", async () => {
+  const { ref, unmount } = await renderCanvas();
+  ref.current!.fitContentToView({ duration: 0 });
+  await unmount();
+  await nextFrame();
+  await nextFrame();
 });
 
 // B9: changing maxZoom after mount leaves the zoom limit stale.

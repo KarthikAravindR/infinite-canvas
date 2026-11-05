@@ -31,8 +31,9 @@ import {
 import styles from "./App.module.css";
 import { ScrollBar } from "./components/ScrollBar/scrollbar";
 
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-const TIME_TO_WAIT = isSafari ? 600 : 300;
+const isSafari =
+  typeof navigator !== "undefined" &&
+  /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 export interface ReactInfiniteCanvasProps {
   children: JSX.Element;
@@ -404,60 +405,53 @@ const ReactInfiniteCanvasRenderer = memo(
         maxZoomLimit?: number;
         disableVerticalCenter?: boolean;
       }) {
-        requestIdleCallback(
-          () => {
-            if (!flowRendererRef.current) return;
-            const canvasNode = select(canvasRef.current);
-            const contentBounds =
-              flowRendererRef.current.getBoundingClientRect();
-            const currentZoom = d3Selection.current.property("__zoom").k || 1;
-            const containerBounds = canvasRef.current?.getBoundingClientRect();
-            const { width: containerWidth = 0, height: containerHeight = 0 } =
-              containerBounds || {};
-            const scaleDiff = 1 / currentZoom;
-            const contentWidth = contentBounds.width * scaleDiff;
-            const contentHeight = contentBounds.height * scaleDiff;
-            const heightRatio = containerHeight / contentHeight;
-            const widthRatio = containerWidth / contentWidth;
+        requestAnimationFrame(() => {
+          if (!flowRendererRef.current || !canvasRef.current) return;
+          const canvasNode = select(canvasRef.current);
+          const contentBounds = flowRendererRef.current.getBoundingClientRect();
+          const currentZoom = d3Selection.current.property("__zoom").k || 1;
+          const containerBounds = canvasRef.current?.getBoundingClientRect();
+          const { width: containerWidth = 0, height: containerHeight = 0 } =
+            containerBounds || {};
+          const scaleDiff = 1 / currentZoom;
+          const contentWidth = contentBounds.width * scaleDiff;
+          const contentHeight = contentBounds.height * scaleDiff;
+          const heightRatio = containerHeight / contentHeight;
+          const widthRatio = containerWidth / contentWidth;
 
-            const newScale =
-              scale ??
-              clampValue({
-                value: Math.min(
-                  maxZoomLimit,
-                  Math.min(heightRatio, widthRatio),
-                ),
-                min: minZoom,
-                max: maxZoom,
-              });
+          const newScale =
+            scale ??
+            clampValue({
+              value: Math.min(maxZoomLimit, Math.min(heightRatio, widthRatio)),
+              min: minZoom,
+              max: maxZoom,
+            });
 
-            // below code calculates the translateX and translateY values to
-            // center the content horizontally and if disableVerticalCenter is false center the content vertically
-            const newWidth = containerWidth - contentWidth * newScale;
-            const newHeight = containerHeight - contentHeight * newScale;
+          // below code calculates the translateX and translateY values to
+          // center the content horizontally and if disableVerticalCenter is false center the content vertically
+          const newWidth = containerWidth - contentWidth * newScale;
+          const newHeight = containerHeight - contentHeight * newScale;
 
-            const canCenterVertically =
-              !disableVerticalCenter && heightRatio > widthRatio;
+          const canCenterVertically =
+            !disableVerticalCenter && heightRatio > widthRatio;
 
-            const baseTranslateX = newWidth / 2;
-            const baseTranslateY = canCenterVertically ? newHeight / 2 : 0;
+          const baseTranslateX = newWidth / 2;
+          const baseTranslateY = canCenterVertically ? newHeight / 2 : 0;
 
-            const translateX = baseTranslateX + offset.x;
-            const translateY = baseTranslateY + offset.y;
+          const translateX = baseTranslateX + offset.x;
+          const translateY = baseTranslateY + offset.y;
 
-            const newTransform = zoomIdentity
-              .translate(translateX, translateY)
-              .scale(newScale);
-            setZoomTransform({ translateX, translateY, scale: newScale });
-            scrollBarRef.current?.resetScrollPos();
+          const newTransform = zoomIdentity
+            .translate(translateX, translateY)
+            .scale(newScale);
+          setZoomTransform({ translateX, translateY, scale: newScale });
+          scrollBarRef.current?.resetScrollPos();
 
-            canvasNode
-              .transition()
-              .duration(duration)
-              .call(d3Zoom.transform, newTransform);
-          },
-          { timeout: TIME_TO_WAIT },
-        );
+          canvasNode
+            .transition()
+            .duration(duration)
+            .call(d3Zoom.transform, newTransform);
+        });
       },
       [maxZoom, minZoom],
     );
@@ -479,59 +473,56 @@ const ReactInfiniteCanvasRenderer = memo(
       transitionDuration?: number;
       position?: string;
     }) => {
-      requestIdleCallback(
-        () => {
-          if (!nodeElement) return;
-          const zoomLevel = d3Selection.current.property("__zoom");
-          const {
-            k: currentScale,
-            x: currentTranslateX,
-            y: currentTranslateY,
-          } = zoomLevel;
-          const canvasNode = select(canvasRef.current);
+      requestAnimationFrame(() => {
+        if (!nodeElement || !canvasRef.current) return;
+        const zoomLevel = d3Selection.current.property("__zoom");
+        const {
+          k: currentScale,
+          x: currentTranslateX,
+          y: currentTranslateY,
+        } = zoomLevel;
+        const canvasNode = select(canvasRef.current);
 
-          const getUpdatedScale = () => {
-            const getClampedScale = (scale: number) => {
-              if (!maxScale) return scale;
-              return Math.min(maxScale, scale);
-            };
-
-            if (!scale) return getClampedScale(currentScale);
-            let updatedScale = scale;
-            if (shouldUpdateMaxScale) {
-              updatedScale = Math.max(scale, currentScale);
-            }
-            return getClampedScale(updatedScale);
+        const getUpdatedScale = () => {
+          const getClampedScale = (scale: number) => {
+            if (!maxScale) return scale;
+            return Math.min(maxScale, scale);
           };
 
-          const updatedScale = getUpdatedScale();
+          if (!scale) return getClampedScale(currentScale);
+          let updatedScale = scale;
+          if (shouldUpdateMaxScale) {
+            updatedScale = Math.max(scale, currentScale);
+          }
+          return getClampedScale(updatedScale);
+        };
 
-          // calculating svgBounds again because its width might be different if rightPanel is opened
-          const svgBounds = canvasRef.current.getBoundingClientRect();
-          const nodeBounds = nodeElement.getBoundingClientRect();
-          const { updatedX, updatedY } = getUpdatedNodePosition({
-            position,
-            svgBounds,
-            nodeBounds,
-            currentTranslateX,
-            currentTranslateY,
-            currentScale,
-            updatedScale,
-            customOffset: { x: offset.x, y: offset.y },
-          });
+        const updatedScale = getUpdatedScale();
 
-          const newTransform = zoomIdentity
-            .translate(updatedX, updatedY)
-            .scale(updatedScale);
+        // calculating svgBounds again because its width might be different if rightPanel is opened
+        const svgBounds = canvasRef.current.getBoundingClientRect();
+        const nodeBounds = nodeElement.getBoundingClientRect();
+        const { updatedX, updatedY } = getUpdatedNodePosition({
+          position,
+          svgBounds,
+          nodeBounds,
+          currentTranslateX,
+          currentTranslateY,
+          currentScale,
+          updatedScale,
+          customOffset: { x: offset.x, y: offset.y },
+        });
 
-          canvasNode
-            // @ts-ignore
-            .transition()
-            .duration(transitionDuration)
-            .call(d3Zoom.transform, newTransform);
-        },
-        { timeout: TIME_TO_WAIT },
-      );
+        const newTransform = zoomIdentity
+          .translate(updatedX, updatedY)
+          .scale(updatedScale);
+
+        canvasNode
+          // @ts-ignore
+          .transition()
+          .duration(transitionDuration)
+          .call(d3Zoom.transform, newTransform);
+      });
     };
 
     const scrollContentHorizontallyCenter = ({
@@ -542,38 +533,36 @@ const ReactInfiniteCanvasRenderer = memo(
       transitionDuration?: number;
     }) => {
       if (!flowRendererRef.current) return;
-      requestIdleCallback(
-        () => {
-          const zoomLevel = d3Selection.current.property("__zoom");
-          const { k: scale, y: translateY } = zoomLevel;
-          const canvasNode = select(canvasRef.current);
+      requestAnimationFrame(() => {
+        if (!canvasRef.current) return;
+        const zoomLevel = d3Selection.current.property("__zoom");
+        const { k: scale, y: translateY } = zoomLevel;
+        const canvasNode = select(canvasRef.current);
 
-          // calculating svgBounds again because its width might be different if rightPanel is opened
-          const svgBounds = canvasRef.current.getBoundingClientRect();
-          const nodeBounds = flowRendererRef.current.getBoundingClientRect();
-          const scaleDiff = 1 / scale;
-          const nodeBoundsWidth = nodeBounds.width * scaleDiff;
+        // calculating svgBounds again because its width might be different if rightPanel is opened
+        const svgBounds = canvasRef.current.getBoundingClientRect();
+        const nodeBounds = flowRendererRef.current.getBoundingClientRect();
+        const scaleDiff = 1 / scale;
+        const nodeBoundsWidth = nodeBounds.width * scaleDiff;
 
-          const updatedX =
-            (svgBounds.width - nodeBoundsWidth * scale) / 2 + offset;
+        const updatedX =
+          (svgBounds.width - nodeBoundsWidth * scale) / 2 + offset;
 
-          setZoomTransform({
-            ...zoomTransform,
-            translateX: updatedX,
-          });
+        setZoomTransform({
+          ...zoomTransform,
+          translateX: updatedX,
+        });
 
-          const newTransform = zoomIdentity
-            .translate(updatedX, translateY)
-            .scale(scale);
+        const newTransform = zoomIdentity
+          .translate(updatedX, translateY)
+          .scale(scale);
 
-          canvasNode
-            // @ts-ignore
-            .transition()
-            .duration(transitionDuration)
-            .call(d3Zoom.transform, newTransform);
-        },
-        { timeout: TIME_TO_WAIT },
-      );
+        canvasNode
+          // @ts-ignore
+          .transition()
+          .duration(transitionDuration)
+          .call(d3Zoom.transform, newTransform);
+      });
     };
 
     const getCanvasState = () => {
