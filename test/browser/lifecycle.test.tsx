@@ -97,6 +97,22 @@ test("onZoom reports the transform on pan", async () => {
   ]);
 });
 
+test("onZoom reports zoom", async () => {
+  const onZoom = vi.fn();
+  const { node } = await renderCanvas({ onZoom });
+  await wheel(center(node), { deltaY: -100, ctrlKey: true });
+  expect(onZoom.mock.lastCall?.[0].scale).toBeGreaterThan(1);
+});
+
+// The 400x300 content fits the 600x400 view at scale 400/300.
+test("onZoom fires for fitContentToView", async () => {
+  const onZoom = vi.fn();
+  const { ref, content } = await renderCanvas({ onZoom });
+  ref.current!.fitContentToView({ duration: 0, maxZoomLimit: 2 });
+  await expect.poll(() => onZoom.mock.lastCall?.[0].scale).toBeCloseTo(4 / 3);
+  expect(content.getBoundingClientRect().height).toBeCloseTo(400, 0);
+});
+
 // An in-flight transition (or drag) must not call onZoom after unmount.
 test("onZoom is not called after unmount", async () => {
   const onZoom = vi.fn();
