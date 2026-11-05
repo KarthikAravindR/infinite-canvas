@@ -279,6 +279,7 @@ export const ScrollBar = forwardRef(
         <div
           className={styles.verticalScrollBar}
           style={{ width: thickness }}
+          aria-hidden="true"
           ref={verticalScrollBarRef}
         >
           <div
@@ -313,6 +314,7 @@ export const ScrollBar = forwardRef(
           className={styles.horizontalScrollBar}
           ref={horizontalScrollBarRef}
           style={{ height: thickness }}
+          aria-hidden="true"
         >
           <div
             data-id="horizontal-scrollbar"
