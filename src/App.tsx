@@ -65,7 +65,7 @@ export interface ReactInfiniteCanvasProps {
     className?: string;
   }>;
   onCanvasMount?: (functions: ReactInfiniteCanvasHandle) => void;
-  onZoom?: (event: Event) => void;
+  onZoom?: (zoomState: ZoomState) => void;
 }
 
 export interface CanvasState {
@@ -82,8 +82,14 @@ export interface CanvasState {
     undefined
   >;
   currentPosition: { k: number; x: number; y: number };
-  d3Zoom: ZoomBehavior<HTMLDivElement | SVGAElement, unknown>;
+  d3Zoom: ZoomBehavior<HTMLDivElement | SVGSVGElement, unknown>;
 }
+
+export type ZoomState = {
+  translateX: number;
+  translateY: number;
+  scale: number;
+};
 
 export type ReactInfiniteCanvasHandle = {
   scrollNodeToCenter: ({
@@ -179,6 +185,7 @@ const ReactInfiniteCanvasRenderer = memo(
     scrollBarConfig = {},
     backgroundConfig = {},
     onCanvasMount = () => {},
+    onZoom,
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<DOMRect | null>(null);
@@ -201,21 +208,21 @@ const ReactInfiniteCanvasRenderer = memo(
 
     // Created once: the mount effect attaches it, so a replacement would never be attached.
     const [d3Zoom] = useState(() =>
-      zoom<SVGAElement | HTMLDivElement, unknown>(),
+      zoom<SVGSVGElement | HTMLDivElement, unknown>(),
     );
     useEffect(() => {
       d3Zoom.scaleExtent([minZoom, maxZoom]);
     }, [d3Zoom, minZoom, maxZoom]);
     const d3Selection = useRef<Selection<
-      SVGAElement | HTMLDivElement,
+      SVGSVGElement | HTMLDivElement,
       unknown,
       null,
       undefined
     > | null>(null);
     // Props the mount-time listeners read at event time.
-    const latest = useRef({ panOnScroll });
+    const latest = useRef({ panOnScroll, onZoom });
     useEffect(() => {
-      latest.current = { panOnScroll };
+      latest.current = { panOnScroll, onZoom };
     });
 
     const [zoomTransform, setZoomTransform] = useState({
@@ -258,7 +265,7 @@ const ReactInfiniteCanvasRenderer = memo(
     // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     useEffect(function zoomAndPanHandler() {
       const selection = select(
-        canvasRef.current as SVGAElement | HTMLDivElement,
+        canvasRef.current as SVGSVGElement | HTMLDivElement,
       ).call(d3Zoom);
       d3Selection.current = selection;
       // Same name as the wheel listener d3 registered in .call() above, so it
@@ -338,6 +345,7 @@ const ReactInfiniteCanvasRenderer = memo(
                 `translate(${translateX},${translateY}) scale(${scale})`,
               );
             }
+            latest.current.onZoom?.({ translateX, translateY, scale });
           },
         );
 
@@ -706,13 +714,7 @@ const CustomComponentWrapper = ({
   position: string;
   offset: { x: number; y: number };
   overlap: boolean;
-  zoomState: {
-    translateX: number;
-    translateY: number;
-    scale: number;
-    minZoom: number;
-    maxZoom: number;
-  };
+  zoomState: ZoomState & { minZoom: number; maxZoom: number };
   className: string;
 }) => {
   const positionStyle = useMemo(() => {

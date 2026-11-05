@@ -1,5 +1,6 @@
 import React from "react";
 import type { CSSProperties, JSX } from "react";
+import type { ZoomState } from "../../App";
 import { clampValue } from "../../helpers/utils";
 
 import styles from "./styles.module.css";
@@ -11,11 +12,7 @@ export interface BackgroundProps {
   minSize?: number;
   maxZoom?: number;
   gap?: number;
-  zoomTransform?: {
-    scale: number;
-    translateX: number;
-    translateY: number;
-  };
+  zoomTransform?: ZoomState;
   className?: string;
   minOpacity?: number;
   maxOpacity?: number;
