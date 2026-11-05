@@ -99,7 +99,7 @@ test.fails("two canvases get different background patterns", async () => {
 });
 
 // B7: the bottom-center slot has no horizontal centering.
-test.fails("bottom-center component is horizontally centered", async () => {
+test("bottom-center component is horizontally centered", async () => {
   const { host } = await renderCanvas({
     customComponents: [
       {

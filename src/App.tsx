@@ -722,7 +722,12 @@ const CustomComponentWrapper = ({
 
     const [positionY, positionX] = updatedPos.split("-");
     return {
-      [positionX]: offset.x,
+      ...(positionX === "center"
+        ? {
+            left: "50%",
+            transform: `translateX(calc(-50% + ${offset.x}px))`,
+          }
+        : { [positionX]: offset.x }),
       [positionY]: offset.y,
     };
   }, [position, offset]);
