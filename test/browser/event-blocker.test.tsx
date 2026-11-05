@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import { server } from "vitest/browser";
 import { EventBlocker } from "../../src/main";
 import {
   center,
@@ -6,6 +7,7 @@ import {
   drag,
   fire,
   renderCanvas,
+  settle,
   wheel,
   type Point,
 } from "./helpers";
@@ -77,8 +79,8 @@ test("pan works on empty canvas next to a blocker", async () => {
 });
 
 // B2: a drag that starts on a pan-blocked box leaves stale state, so the next
-// pan jumps by that drag's distance. Phase 2 switches this to `test`.
-test.fails("blocked drag does not make the next pan jump", async () => {
+// pan jumps by that drag's distance.
+test("blocked drag does not make the next pan jump", async () => {
   const { node, blocked, empty } = await renderCanvas();
   const before = contentPosition(node);
   const start = center(blocked);
@@ -92,7 +94,7 @@ test.fails("blocked drag does not make the next pan jump", async () => {
 });
 
 // B3: the blocker swallows mousedown before the child's React handler sees it.
-test.fails("onMouseDown fires inside a pan-blocked EventBlocker", async () => {
+test("onMouseDown fires inside a pan-blocked EventBlocker", async () => {
   const onMouseDown = vi.fn();
   const { blocked } = await renderCanvas({}, { onMouseDown });
   const p = center(blocked);
@@ -100,3 +102,46 @@ test.fails("onMouseDown fires inside a pan-blocked EventBlocker", async () => {
   fire("mouseup", p);
   expect(onMouseDown).toHaveBeenCalledTimes(1);
 });
+
+// Review Focus 5: touch gestures are filtered too. Only Chromium has `Touch`.
+test.runIf(server.browser === "chromium")(
+  "touch drag on a pan-blocked element does not pan",
+  async () => {
+    // d3 only listens for touch when the device reports touch support.
+    const touchSupport = vi
+      .spyOn(navigator, "maxTouchPoints", "get")
+      .mockReturnValue(1);
+    try {
+      const { node, blocked } = await renderCanvas();
+      const before = contentPosition(node);
+      const p = center(blocked);
+      const touch = (dx: number) =>
+        new Touch({
+          identifier: 1,
+          target: blocked,
+          clientX: p.x + dx,
+          clientY: p.y,
+        });
+      const send = (type: string, dx: number, ended = false) => {
+        const t = touch(dx);
+        blocked.dispatchEvent(
+          new TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: ended ? [] : [t],
+            targetTouches: ended ? [] : [t],
+            changedTouches: [t],
+          }),
+        );
+      };
+      send("touchstart", 0);
+      send("touchmove", 30);
+      send("touchmove", 60);
+      send("touchend", 60, true);
+      await settle();
+      expect(contentPosition(node)).toEqual(before);
+    } finally {
+      touchSupport.mockRestore();
+    }
+  },
+);

@@ -89,7 +89,7 @@ test.fails("wheel pans on the first render", async () => {
 });
 
 // B12: any mouse button pans, not just the primary one.
-test.fails("only the primary button pans", async () => {
+test("only the primary button pans", async () => {
   const { node, empty } = await renderCanvas();
   const before = contentPosition(node);
   const to = { x: empty.x - 50, y: empty.y - 30 };
