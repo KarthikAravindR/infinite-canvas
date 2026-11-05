@@ -69,130 +69,29 @@ export const getUpdatedNodePosition = ({
   updatedScale: number;
   customOffset: { x: number; y: number };
 }) => {
-  let [nodeTranslateX, nodeTranslateY, scaleDiff] = [0, 0, 1];
-  if (updatedScale !== currentScale) {
-    scaleDiff = updatedScale / currentScale;
-    currentTranslateX *= scaleDiff;
-    currentTranslateY *= scaleDiff;
+  const k = updatedScale / currentScale;
+  const [vertical, horizontal] = position.split("-");
+  if (!Object.values(SCROLL_NODE_POSITIONS).includes(position)) {
+    return { updatedX: currentTranslateX * k, updatedY: currentTranslateY * k };
   }
-  switch (position) {
-    case SCROLL_NODE_POSITIONS.TOP_LEFT:
-      return {
-        updatedX:
-          currentTranslateX +
-          ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
-        updatedY:
-          currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
-      };
-    case SCROLL_NODE_POSITIONS.TOP_CENTER:
-      nodeTranslateX =
-        svgBounds.width / 2 -
-        (nodeBounds.x * scaleDiff + (nodeBounds.width * scaleDiff) / 2) +
-        svgBounds.x;
-      return {
-        updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
-        updatedY:
-          currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
-      };
-    case SCROLL_NODE_POSITIONS.TOP_RIGHT:
-      return {
-        updatedX:
-          currentTranslateX +
-          (svgBounds.width -
-            (Math.abs(svgBounds.x - nodeBounds.x * scaleDiff) +
-              nodeBounds.width * scaleDiff)) +
-          customOffset.x,
-        updatedY:
-          currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
-      };
-    case SCROLL_NODE_POSITIONS.CENTER_LEFT:
-      nodeTranslateY =
-        svgBounds.height / 2 -
-        (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-          (nodeBounds.height * scaleDiff) / 2);
-      return {
-        updatedX:
-          currentTranslateX +
-          ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
-      };
-    case SCROLL_NODE_POSITIONS.CENTER_CENTER:
-      nodeTranslateX =
-        svgBounds.width / 2 -
-        (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
-          (nodeBounds.width * scaleDiff) / 2);
-      nodeTranslateY =
-        svgBounds.height / 2 -
-        (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-          (nodeBounds.height * scaleDiff) / 2);
-      return {
-        updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
-      };
-    case SCROLL_NODE_POSITIONS.CENTER_RIGHT:
-      nodeTranslateY =
-        svgBounds.height / 2 -
-        (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-          (nodeBounds.height * scaleDiff) / 2);
-      return {
-        updatedX:
-          currentTranslateX +
-          (svgBounds.width -
-            (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
-              nodeBounds.width * scaleDiff)) +
-          customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
-      };
-    case SCROLL_NODE_POSITIONS.BOTTOM_LEFT:
-      return {
-        updatedX:
-          currentTranslateX +
-          ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
-        updatedY:
-          currentTranslateY +
-          (svgBounds.height -
-            (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-              nodeBounds.height * scaleDiff)) +
-          customOffset.y,
-      };
-    case SCROLL_NODE_POSITIONS.BOTTOM_CENTER:
-      nodeTranslateX =
-        svgBounds.width / 2 -
-        (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
-          (nodeBounds.width * scaleDiff) / 2);
-      return {
-        updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
-        updatedY:
-          currentTranslateY +
-          (svgBounds.height -
-            (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-              nodeBounds.height * scaleDiff)) +
-          customOffset.y,
-      };
-    case SCROLL_NODE_POSITIONS.BOTTOM_RIGHT:
-      return {
-        updatedX:
-          currentTranslateX +
-          (svgBounds.width -
-            (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
-              nodeBounds.width * scaleDiff)) +
-          customOffset.x,
-        updatedY:
-          currentTranslateY +
-          (svgBounds.height -
-            (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
-              nodeBounds.height)) +
-          customOffset.y,
-      };
-    default:
-      return {
-        updatedX: currentTranslateX,
-        updatedY: currentTranslateY,
-      };
-  }
+  const align = (side: string, size: number, view: number) =>
+    side === "left" || side === "top"
+      ? 0
+      : side === "center"
+        ? (view - size) / 2
+        : view - size;
+  return {
+    updatedX:
+      align(horizontal, nodeBounds.width * k, svgBounds.width) -
+      (nodeBounds.x - svgBounds.x) * k +
+      currentTranslateX * k +
+      customOffset.x,
+    updatedY:
+      align(vertical, nodeBounds.height * k, svgBounds.height) -
+      (nodeBounds.y - svgBounds.y) * k +
+      currentTranslateY * k +
+      customOffset.y,
+  };
 };
 
 export const getScrollSize = (scale: number) => {

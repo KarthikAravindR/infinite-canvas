@@ -55,35 +55,22 @@ const expectLanding = (
 };
 
 const ALL = Object.values(SCROLL_NODE_POSITIONS);
-/** Rows split into [passing, expected-to-fail today] for one bug. */
-const rows = (failing: string[]) =>
-  [ALL.filter((p) => !failing.includes(p)), failing] as const;
 
 test.each(ALL)(
   "places an on-screen node at each of the 9 positions when the zoom stays the same: %s",
   (position) => expectLanding(position),
 );
 
-// B13: some positions mix scaled and unscaled terms when the zoom changes.
+// B13: the zoom changes.
 const zoomIn = { currentScale: 1, updatedScale: 2 };
-const [zoomOk, zoomBad] = rows(["top-center", "top-right", "bottom-right"]);
-test.each(zoomOk)(
-  "positions a node correctly when the zoom changes: %s",
-  (position) => expectLanding(position, zoomIn),
-);
-test.fails.each(zoomBad)(
+test.each(ALL)(
   "positions a node correctly when the zoom changes: %s",
   (position) => expectLanding(position, zoomIn),
 );
 
-// B14: Math.abs flips the sign for a node left of / above the canvas origin.
+// B14: a node left of / above the canvas origin.
 const offScreen = { cx: -400, cy: -300 };
-const [offOk, offBad] = rows(ALL.filter((p) => p !== "top-left" && p !== "top-center"));
-test.each(offOk)(
-  "positions an off-screen node correctly: %s",
-  (position) => expectLanding(position, offScreen),
-);
-test.fails.each(offBad)(
+test.each(ALL)(
   "positions an off-screen node correctly: %s",
   (position) => expectLanding(position, offScreen),
 );
