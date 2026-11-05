@@ -4,7 +4,6 @@ import {
   center,
   contentPosition,
   drag,
-  type Point,
   renderCanvas,
   wheel,
 } from "./helpers";
@@ -27,13 +26,8 @@ test("drag on empty canvas pans content by the drag distance", async () => {
   });
 });
 
-// B10: wheel panning only works after the first pan, so wheel tests warm up
-// with a drag first. Task 11 removes the workaround.
-const warmUp = (empty: Point) => drag(empty, { x: empty.x + 1, y: empty.y });
-
 test("wheel pans content by the wheel delta", async () => {
   const { node, empty } = await renderCanvas();
-  await warmUp(empty);
   const before = contentPosition(node);
   await wheel(empty, { deltaY: 40 });
   const after = contentPosition(node);
@@ -54,8 +48,7 @@ test("ctrl+wheel zooms in around the pointer", async () => {
 });
 
 test("with panOnScroll={false}, wheel zooms instead of panning", async () => {
-  const { node, empty } = await renderCanvas({ panOnScroll: false });
-  await warmUp(empty); // B10 workaround, removed in Task 11
+  const { node } = await renderCanvas({ panOnScroll: false });
   await wheel(center(node), { deltaY: -100 });
   expect(node.getBoundingClientRect().width).toBeGreaterThan(80);
 });
@@ -77,7 +70,7 @@ test("zoom stops at minZoom", async () => {
 });
 
 // B10: the wheel handler is only attached after the first pan.
-test.fails("wheel pans on the first render", async () => {
+test("wheel pans on the first render", async () => {
   const { node, empty } = await renderCanvas();
   const before = contentPosition(node);
   await wheel(empty, { deltaY: 40 });
