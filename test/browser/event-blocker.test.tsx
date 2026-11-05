@@ -9,7 +9,6 @@ import {
   renderCanvas,
   settle,
   wheel,
-  type Point,
 } from "./helpers";
 
 // Second blocker, placed in free space of the content box, at (200,0)-(400,100).
@@ -25,16 +24,12 @@ const blocker = (flags: { scroll?: boolean; zoom?: boolean }) => (
   </div>
 );
 
-// B10: wheel panning only works after the first pan; Task 11 removes the warm-up.
-const warmUp = (empty: Point) => drag(empty, { x: empty.x + 1, y: empty.y });
-
 test("shouldBlockScroll: wheel over the blocker does not pan", async () => {
   const { node, empty, at } = await renderCanvas(
     {},
     {},
     { extraContent: blocker({ scroll: true }) },
   );
-  await warmUp(empty); // B10 workaround, removed in Task 11
   const before = contentPosition(node);
   await wheel(at(300, 50), { deltaY: 40 });
   expect(contentPosition(node)).toEqual(before);
@@ -47,20 +42,29 @@ test("shouldBlockScroll: wheel over the blocker does not pan", async () => {
   });
 });
 
-// B17: the wheel handler calls `shouldBlockEvent({ ...event })` (src/App.tsx:337).
-// Spreading a WheelEvent drops the inherited ctrlKey/metaKey getters, so a
-// zoom-only blocker never blocks ctrl+wheel. Task 11 fixes it and switches this
-// test to `test`. The B10 warm-up below is also removed in Task 11.
-test.fails("shouldBlockZoom: ctrl+wheel over the blocker does not zoom", async () => {
-  const { node, empty, at } = await renderCanvas(
+// B17: the wheel handler called `shouldBlockEvent({ ...event })`. Spreading a
+// WheelEvent drops the inherited ctrlKey/metaKey getters, so a zoom-only
+// blocker never blocked ctrl+wheel.
+test("shouldBlockZoom: ctrl+wheel over the blocker does not zoom", async () => {
+  const { node, at } = await renderCanvas(
     {},
     {},
     { extraContent: blocker({ zoom: true }) },
   );
-  // B10: the blocking wheel handler is attached only after the first pan; Task 11 removes the warm-up.
-  await warmUp(empty);
   await wheel(at(300, 50), { deltaY: -100, ctrlKey: true });
   expect(node.getBoundingClientRect().width).toBe(80);
+});
+
+// B17, the other side: the spread made every wheel look like a plain scroll,
+// so a scroll-only blocker also blocked ctrl+wheel. Now ctrl+wheel zooms there.
+test("shouldBlockScroll only: ctrl+wheel over the blocker zooms", async () => {
+  const { node, at } = await renderCanvas(
+    {},
+    {},
+    { extraContent: blocker({ scroll: true }) },
+  );
+  await wheel(at(300, 50), { deltaY: -100, ctrlKey: true });
+  expect(node.getBoundingClientRect().width).toBeGreaterThan(80);
 });
 
 test("pan works on empty canvas next to a blocker", async () => {

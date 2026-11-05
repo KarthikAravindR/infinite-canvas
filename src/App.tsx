@@ -192,13 +192,24 @@ const ReactInfiniteCanvasRenderer = memo(
     ).ref;
     const isUserPressed = useRef<boolean | null>(null);
 
-    const d3Zoom = useMemo(() => {
-      return zoom<SVGAElement | HTMLDivElement, unknown>().scaleExtent([
-        minZoom,
-        maxZoom,
-      ]);
-    }, [maxZoom, minZoom]);
-    const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
+    // Created once: the mount effect attaches it, so a replacement would never be attached.
+    const [d3Zoom] = useState(() =>
+      zoom<SVGAElement | HTMLDivElement, unknown>(),
+    );
+    useEffect(() => {
+      d3Zoom.scaleExtent([minZoom, maxZoom]);
+    }, [d3Zoom, minZoom, maxZoom]);
+    const d3Selection = useRef<Selection<
+      SVGAElement | HTMLDivElement,
+      unknown,
+      null,
+      undefined
+    > | null>(null);
+    // Props the mount-time listeners read at event time.
+    const latest = useRef({ panOnScroll });
+    useEffect(() => {
+      latest.current = { panOnScroll };
+    });
 
     const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
@@ -239,7 +250,43 @@ const ReactInfiniteCanvasRenderer = memo(
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     useEffect(function zoomAndPanHandler() {
-      d3Selection.current = select(canvasRef.current).call(d3Zoom);
+      const selection = select(
+        canvasRef.current as SVGAElement | HTMLDivElement,
+      ).call(d3Zoom);
+      d3Selection.current = selection;
+      // Same name as the wheel listener d3 registered in .call() above, so it
+      // replaces d3's: plain wheel pans, ctrl+wheel (or panOnScroll={false}) zooms.
+      selection.on(
+        "wheel.zoom",
+        (event: WheelEvent) => {
+          // Pass the fields explicitly: spreading an event drops ctrlKey/metaKey.
+          if (
+            shouldBlockEvent({
+              target: event.target as HTMLElement,
+              ctrlKey: event.ctrlKey,
+              metaKey: event.metaKey,
+            })
+          ) {
+            return;
+          }
+          event.preventDefault();
+
+          const currentZoom = selection.property("__zoom").k || 1;
+
+          if (latest.current.panOnScroll && !event.ctrlKey) {
+            const scrollDeltaValue = {
+              deltaX: event.deltaX,
+              deltaY: event.deltaY,
+            };
+            scrollBarRef.current?.onScrollDeltaChangeHandler(scrollDeltaValue);
+            onScrollDeltaHandler(scrollDeltaValue);
+          } else {
+            const nextZoom = currentZoom * 2 ** (-event.deltaY * 0.01);
+            d3Zoom.scaleTo(selection, nextZoom, pointer(event));
+          }
+        },
+        { passive: false, capture: true },
+      );
       const zoomNode = select(zoomContainerRef.current);
       canvasWrapperBounds.current = canvasWrapperRef.current
         ? canvasWrapperRef.current.getBoundingClientRect()
@@ -322,71 +369,22 @@ const ReactInfiniteCanvasRenderer = memo(
         fitContentToView,
         getCanvasState,
       });
+
+      // On unmount (and Strict Mode's simulated one), remove d3's listeners and ours.
+      return () => {
+        selection.on(".zoom", null);
+      };
     }, []);
-
-    d3Selection.current
-      .call(zoom)
-      // Override the default wheel event listener
-      .on(
-        "wheel.zoom",
-        (event: {
-          preventDefault: () => void;
-          ctrlKey: boolean;
-          metaKey: boolean;
-          deltaY: number;
-          deltaX: number;
-          target: EventTarget | null;
-        }) => {
-          if (
-            shouldBlockEvent({ ...event, target: event.target as HTMLElement })
-          ) {
-            return;
-          }
-          event.preventDefault();
-
-          const currentZoom = d3Selection.current.property("__zoom").k || 1;
-
-          if (panOnScroll && !event.ctrlKey) {
-            const scrollDeltaValue = {
-              deltaX: event.deltaX,
-              deltaY: event.deltaY,
-            };
-            scrollBarRef.current?.onScrollDeltaChangeHandler(scrollDeltaValue);
-            onScrollDeltaHandler(scrollDeltaValue);
-          } else {
-            const nextZoom = currentZoom * 2 ** (-event.deltaY * 0.01);
-            const selection = d3Selection.current;
-            if (selection) {
-              d3Zoom.scaleTo(
-                selection as Selection<
-                  SVGAElement | HTMLDivElement,
-                  unknown,
-                  null,
-                  undefined
-                >,
-                nextZoom,
-                pointer(event),
-              );
-            }
-          }
-        },
-        { passive: false, capture: true },
-      );
 
     const onScrollDeltaHandler = (scrollDelta: {
       deltaX: number;
       deltaY: number;
     }) => {
-      const currentZoom = d3Selection.current.property("__zoom").k || 1;
       const selection = d3Selection.current;
       if (selection) {
+        const currentZoom = selection.property("__zoom").k || 1;
         d3Zoom.translateBy(
-          selection as Selection<
-            SVGAElement | HTMLDivElement,
-            unknown,
-            null,
-            undefined
-          >,
+          selection,
           -(scrollDelta.deltaX / currentZoom),
           -(scrollDelta.deltaY / currentZoom),
         );
@@ -412,7 +410,7 @@ const ReactInfiniteCanvasRenderer = memo(
           if (!flowRendererRef.current || !canvasRef.current) return;
           const canvasNode = select(canvasRef.current);
           const contentBounds = flowRendererRef.current.getBoundingClientRect();
-          const currentZoom = d3Selection.current.property("__zoom").k || 1;
+          const currentZoom = d3Selection.current?.property("__zoom").k || 1;
           const containerBounds = canvasRef.current?.getBoundingClientRect();
           const { width: containerWidth = 0, height: containerHeight = 0 } =
             containerBounds || {};
@@ -478,7 +476,7 @@ const ReactInfiniteCanvasRenderer = memo(
     }) => {
       requestAnimationFrame(() => {
         if (!nodeElement || !canvasRef.current) return;
-        const zoomLevel = d3Selection.current.property("__zoom");
+        const zoomLevel = d3Selection.current?.property("__zoom");
         const {
           k: currentScale,
           x: currentTranslateX,
@@ -538,7 +536,7 @@ const ReactInfiniteCanvasRenderer = memo(
       if (!flowRendererRef.current) return;
       requestAnimationFrame(() => {
         if (!canvasRef.current) return;
-        const zoomLevel = d3Selection.current.property("__zoom");
+        const zoomLevel = d3Selection.current?.property("__zoom");
         const { k: scale, y: translateY } = zoomLevel;
         const canvasNode = select(canvasRef.current);
 
@@ -572,7 +570,7 @@ const ReactInfiniteCanvasRenderer = memo(
       return {
         canvasNode: select(canvasRef.current),
         zoomNode: select(zoomContainerRef.current),
-        currentPosition: d3Selection.current.property("__zoom"),
+        currentPosition: d3Selection.current?.property("__zoom"),
         d3Zoom,
       };
     };
