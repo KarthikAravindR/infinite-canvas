@@ -175,6 +175,7 @@ export async function renderCanvas(
     blocked: el("blocked"),
     empty: at(500, 330),
     at,
+    unmount: screen.unmount,
     async rerender(next: CanvasProps) {
       await screen.rerender(ui(next));
       await settle();
