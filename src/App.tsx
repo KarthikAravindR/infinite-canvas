@@ -191,6 +191,10 @@ const ReactInfiniteCanvasRenderer = memo(
       children as React.ReactElement & { ref: React.RefObject<HTMLElement> }
     ).ref;
     const isUserPressed = useRef<boolean | null>(null);
+    const [wrapperSize, setWrapperSize] = useState<{
+      width: number;
+      height: number;
+    } | null>(null);
 
     // Created once: the mount effect attaches it, so a replacement would never be attached.
     const [d3Zoom] = useState(() =>
@@ -370,8 +374,22 @@ const ReactInfiniteCanvasRenderer = memo(
         getCanvasState,
       });
 
+      const wrapper = canvasWrapperRef.current;
+      const measure = () =>
+        wrapper &&
+        setWrapperSize((prev) =>
+          prev?.width === wrapper.offsetWidth &&
+          prev.height === wrapper.offsetHeight
+            ? prev
+            : { width: wrapper.offsetWidth, height: wrapper.offsetHeight },
+        );
+      measure();
+      const resizeObserver = new ResizeObserver(measure);
+      if (wrapper) resizeObserver.observe(wrapper);
+
       // On unmount (and Strict Mode's simulated one), remove d3's listeners and ours.
       return () => {
+        resizeObserver.disconnect();
         selection.on(".zoom", null);
       };
     }, []);
@@ -636,13 +654,13 @@ const ReactInfiniteCanvasRenderer = memo(
             {...backgroundConfig}
           />
         )}
-        {scrollBarConfig.renderScrollBar && canvasWrapperRef.current && (
+        {scrollBarConfig.renderScrollBar && wrapperSize && (
           <ScrollBar
             ref={scrollBarRef}
             scale={zoomTransform.scale}
             {...scrollBarConfig}
-            verticalOffsetHeight={canvasWrapperRef.current.offsetHeight}
-            horizontalOffsetWidth={canvasWrapperRef.current.offsetWidth}
+            verticalOffsetHeight={wrapperSize.height}
+            horizontalOffsetWidth={wrapperSize.width}
             getContainerOffset={getContainerOffset}
             onScrollDeltaHandler={onScrollDeltaHandler}
           />
