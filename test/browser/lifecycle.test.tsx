@@ -44,6 +44,14 @@ test("zoom keeps working after maxZoom changes", async () => {
   expect(node.getBoundingClientRect().width).toBeCloseTo(160, 0);
 });
 
+// The wheel listener is attached once, so it must read panOnScroll at event time.
+test("changing panOnScroll after mount takes effect", async () => {
+  const { node, rerender } = await renderCanvas();
+  await rerender({ panOnScroll: false });
+  await wheel(center(node), { deltaY: -100 });
+  expect(node.getBoundingClientRect().width).toBeGreaterThan(80);
+});
+
 // Review Focus 1: Strict Mode mounts, unmounts and mounts again. The listeners
 // must not double up, so one wheel event pans once.
 test("in StrictMode, one wheel event pans once", async () => {

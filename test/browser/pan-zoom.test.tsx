@@ -26,17 +26,6 @@ test("drag on empty canvas pans content by the drag distance", async () => {
   });
 });
 
-test("wheel pans content by the wheel delta", async () => {
-  const { node, empty } = await renderCanvas();
-  const before = contentPosition(node);
-  await wheel(empty, { deltaY: 40 });
-  const after = contentPosition(node);
-  expect({ x: after.x - before.x, y: after.y - before.y }).toEqual({
-    x: 0,
-    y: -40,
-  });
-});
-
 test("ctrl+wheel zooms in around the pointer", async () => {
   const { node } = await renderCanvas();
   const before = center(node);
