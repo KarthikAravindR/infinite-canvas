@@ -1,3 +1,4 @@
+import React from "react";
 import type { CSSProperties } from "react";
 import { clampValue } from "../../helpers/utils";
 

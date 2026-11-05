@@ -331,7 +331,7 @@ const ReactInfiniteCanvasRenderer = memo(
           metaKey: boolean;
           deltaY: number;
           deltaX: number;
-          target: EventTarget;
+          target: EventTarget | null;
         }) => {
           if (
             shouldBlockEvent({ ...event, target: event.target as HTMLElement })

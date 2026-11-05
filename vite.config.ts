@@ -1,7 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
-import dts from "vite-plugin-dts";
 
 export default defineConfig({
   build: {
@@ -9,13 +8,22 @@ export default defineConfig({
       entry: "src/main.ts",
       name: "ReactInfiniteCanvas",
       formats: ["es", "umd"],
-      fileName: (format) => `react-infinite-canvas.${format}.js`,
+      fileName: "react-infinite-canvas",
     },
     minify: true,
-    rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+    cssMinify: "esbuild",
+    rolldownOptions: {
+      external: ["react", "react-dom"],
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+        },
+      },
     },
     target: ["es2020", "edge88", "firefox78", "chrome79", "safari14"],
   },
-  plugins: [react(), dts({ rollupTypes: true }), cssInjectedByJsPlugin()],
+  // Classic runtime: the bundle imports only "react", never "react/jsx-runtime",
+  // which webpack 5 can't resolve from React 17 in a "type": "module" package.
+  plugins: [react({ jsxRuntime: "classic" }), cssInjectedByJsPlugin()],
 });

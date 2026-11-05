@@ -1,3 +1,4 @@
+import React from "react";
 import { getBlockClassName } from "../../helpers/utils";
 
 export interface EventBlockerProps {

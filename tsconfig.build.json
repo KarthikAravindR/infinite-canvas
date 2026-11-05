@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "outDir": "dist/types",
+    "rootDir": "src",
+    "jsx": "react",
+    "types": ["d3-transition"]
+  },
+  "include": ["src"]
+}

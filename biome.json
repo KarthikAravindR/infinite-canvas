@@ -18,6 +18,7 @@
     "enabled": true
   },
   "javascript": {
+    "jsxRuntime": "reactClassic",
     "formatter": {
       "trailingCommas": "all"
     }
