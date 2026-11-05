@@ -1,11 +1,11 @@
 import {
-  useEffect,
-  useImperativeHandle,
-  useCallback,
   Fragment,
   forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
   useRef,
-  useState
+  useState,
 } from "react";
 import type { DragEvent } from "react";
 
@@ -13,7 +13,7 @@ import { ZOOM_CONFIGS } from "../../helpers/constants";
 import {
   clampValue,
   getScrollSize,
-  onScrollHandler
+  onScrollHandler,
 } from "../../helpers/utils";
 
 import styles from "./styles.module.css";
@@ -30,7 +30,7 @@ export const ScrollBar = forwardRef(
       verticalOffsetHeight,
       horizontalOffsetWidth,
       onScrollDeltaHandler,
-      getContainerOffset
+      getContainerOffset,
     }: {
       scale: number;
       startingPosition?: { x: number; y: number };
@@ -46,7 +46,7 @@ export const ScrollBar = forwardRef(
       }) => void;
       getContainerOffset: (isVertical: boolean) => number;
     },
-    ref
+    ref,
   ) => {
     const [initialVerticalSize, initialHorizontalSize] = getScrollSize(scale);
     const verticalScrollBarRef = useRef<HTMLDivElement | null>(null);
@@ -58,7 +58,7 @@ export const ScrollBar = forwardRef(
     }>({
       isDragging: false,
       vertical: true,
-      initialOffset: 0
+      initialOffset: 0,
     });
 
     const [scrollConfig, setScrollConfig] = useState<{
@@ -80,7 +80,7 @@ export const ScrollBar = forwardRef(
       verticalPos: startingPosition
         ? startingPosition.y
         : (verticalOffsetHeight ?? 0) / ZOOM_CONFIGS.SCROLL_POS_RATIO,
-      verticalSizeDecrease: 0
+      verticalSizeDecrease: 0,
     });
 
     useImperativeHandle(ref, () => ({
@@ -92,11 +92,11 @@ export const ScrollBar = forwardRef(
           verticalPos:
             (verticalOffsetHeight ?? 0) / ZOOM_CONFIGS.SCROLL_POS_RATIO,
           verticalSizeDecrease: 0,
-          horizontalSizeDecrease: 0
+          horizontalSizeDecrease: 0,
         }));
       },
       onScrollDeltaChangeHandler,
-      onMouseUp: handleMouseUp
+      onMouseUp: handleMouseUp,
     }));
 
     useEffect(
@@ -108,31 +108,31 @@ export const ScrollBar = forwardRef(
           if (scale < state.scale) {
             newScrollPos = {
               horizontalPos: state.horizontalPos - ratio,
-              verticalPos: state.verticalPos - ratio
+              verticalPos: state.verticalPos - ratio,
             };
             return {
               ...state,
               scale,
               horizontalSize: newHorizontalSize,
               verticalSize: newVerticalSize,
-              ...newScrollPos
+              ...newScrollPos,
             };
           }
 
           newScrollPos = {
             horizontalPos: state.horizontalPos + ratio,
-            verticalPos: state.verticalPos + ratio
+            verticalPos: state.verticalPos + ratio,
           };
           return {
             ...state,
             scale,
             horizontalSize: newHorizontalSize,
             verticalSize: newVerticalSize,
-            ...newScrollPos
+            ...newScrollPos,
           };
         });
       },
-      [scale]
+      [scale],
     );
 
     function onScrollDeltaChangeHandler(scrollDelta: {
@@ -145,21 +145,21 @@ export const ScrollBar = forwardRef(
           onScrollHandler({
             state,
             scrollDelta,
-            scrollLength: verticalOffsetHeight ?? 0
+            scrollLength: verticalOffsetHeight ?? 0,
           });
         const [newHorizontalScrollData, newHorizontalSizeDecrease] =
           onScrollHandler({
             isVertical: false,
             state,
             scrollDelta,
-            scrollLength: horizontalOffsetWidth ?? 0
+            scrollLength: horizontalOffsetWidth ?? 0,
           });
         return {
           ...state,
           horizontalPos: newHorizontalScrollData,
           horizontalSizeDecrease: newHorizontalSizeDecrease,
           verticalPos: newVerticalScrollData,
-          verticalSizeDecrease: newVerticalSizeDecrease
+          verticalSizeDecrease: newVerticalSizeDecrease,
         };
       });
     }
@@ -188,14 +188,14 @@ export const ScrollBar = forwardRef(
               "verticalPos",
               config.verticalSize,
               verticalOffsetHeight ?? 0,
-              offset.y
+              offset.y,
             ] as const;
           }
           return [
             "horizontalPos",
             config.horizontalSize,
             horizontalOffsetWidth ?? 0,
-            offset.x
+            offset.x,
           ] as const;
         };
 
@@ -207,8 +207,8 @@ export const ScrollBar = forwardRef(
             [stateKey]: clampValue({
               value: scrollPos,
               min: scrollOffset,
-              max: scrollLimit - scrollSize
-            })
+              max: scrollLimit - scrollSize,
+            }),
           };
         });
 
@@ -221,7 +221,7 @@ export const ScrollBar = forwardRef(
             ? { deltaX: 0, deltaY: newDelta }
             : {
                 deltaX: newDelta,
-                deltaY: 0
+                deltaY: 0,
               };
         };
 
@@ -236,7 +236,7 @@ export const ScrollBar = forwardRef(
 
         if (!isEndReached && diff !== 0) onScrollDeltaHandler(newDeltaValue());
       },
-      [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x]
+      [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x],
     );
 
     const handleMouseUp = useCallback(
@@ -244,21 +244,21 @@ export const ScrollBar = forwardRef(
         userDragConfig.current.isDragging = false;
         userDragConfig.current.initialOffset = 0;
         window.removeEventListener("mousemove", (event) =>
-          handleScroll(event, userDragConfig.current.vertical)
+          handleScroll(event, userDragConfig.current.vertical),
         );
         window.removeEventListener("mouseup", handleMouseUp);
       },
-      [handleScroll]
+      [handleScroll],
     );
 
     const handleMouseDown = useCallback(
       function mouseDownHandler() {
         window.addEventListener("mousemove", (event) =>
-          handleScroll(event, userDragConfig.current.vertical)
+          handleScroll(event, userDragConfig.current.vertical),
         );
         window.addEventListener("mouseup", handleMouseUp);
       },
-      [handleScroll, handleMouseUp]
+      [handleScroll, handleMouseUp],
     );
 
     const dragHandler = (event: DragEvent) => {
@@ -278,20 +278,20 @@ export const ScrollBar = forwardRef(
               insetBlockStart: `${clampValue({
                 value: scrollConfig.verticalPos,
                 min: offset.y,
-                max: verticalOffsetHeight
+                max: verticalOffsetHeight,
               })}px`,
               height: `${
                 scrollConfig.verticalSize + scrollConfig.verticalSizeDecrease
               }px`,
               background: color,
-              minHeight: minSize
+              minHeight: minSize,
             }}
             onMouseDownCapture={(event) => {
               event.stopPropagation();
               userDragConfig.current = {
                 ...userDragConfig.current,
                 isDragging: true,
-                vertical: true
+                vertical: true,
               };
               handleMouseDown();
             }}
@@ -311,21 +311,21 @@ export const ScrollBar = forwardRef(
               insetInlineStart: `${clampValue({
                 value: scrollConfig.horizontalPos,
                 min: offset.x,
-                max: horizontalOffsetWidth
+                max: horizontalOffsetWidth,
               })}px`,
               width: `${
                 scrollConfig.horizontalSize +
                 scrollConfig.horizontalSizeDecrease
               }px`,
               background: color,
-              minWidth: minSize
+              minWidth: minSize,
             }}
             onMouseDownCapture={(event) => {
               event.stopPropagation();
               userDragConfig.current = {
                 ...userDragConfig.current,
                 isDragging: true,
-                vertical: false
+                vertical: false,
               };
               handleMouseDown();
             }}
@@ -336,5 +336,5 @@ export const ScrollBar = forwardRef(
         </div>
       </Fragment>
     );
-  }
+  },
 );

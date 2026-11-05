@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 
 import {
-  ZOOM_CONFIGS,
+  BLOCK_EVENTS_CLASS,
   SCROLL_NODE_POSITIONS,
-  BLOCK_EVENTS_CLASS
+  ZOOM_CONFIGS,
 } from "./constants";
 
 export const useOnScreen = (
   ref: { current: Element },
-  { rootMargin = "0px", triggerOnce = false } = {}
+  { rootMargin = "0px", triggerOnce = false } = {},
 ) => {
   const [isIntersecting, setIntersecting] = useState(false);
 
@@ -24,8 +24,8 @@ export const useOnScreen = (
         }
       },
       {
-        rootMargin
-      }
+        rootMargin,
+      },
     );
     if (element) {
       observer.observe(element);
@@ -43,7 +43,7 @@ export const useOnScreen = (
 export const clampValue = ({
   value,
   min = 0,
-  max
+  max,
 }: {
   value: number;
   min?: number;
@@ -58,7 +58,7 @@ export const getUpdatedNodePosition = ({
   currentTranslateY,
   currentScale,
   updatedScale,
-  customOffset
+  customOffset,
 }: {
   position: string;
   svgBounds: { x: number; y: number; width: number; height: number };
@@ -83,7 +83,7 @@ export const getUpdatedNodePosition = ({
           ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.TOP_CENTER:
       nodeTranslateX =
@@ -94,7 +94,7 @@ export const getUpdatedNodePosition = ({
         updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.TOP_RIGHT:
       return {
@@ -106,7 +106,7 @@ export const getUpdatedNodePosition = ({
           customOffset.x,
         updatedY:
           currentTranslateY +
-          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y)
+          ((svgBounds.y - nodeBounds.y) * scaleDiff + customOffset.y),
       };
     case SCROLL_NODE_POSITIONS.CENTER_LEFT:
       nodeTranslateY =
@@ -117,7 +117,7 @@ export const getUpdatedNodePosition = ({
         updatedX:
           currentTranslateX +
           ((svgBounds.x - nodeBounds.x) * scaleDiff + customOffset.x),
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.CENTER_CENTER:
       nodeTranslateX =
@@ -130,7 +130,7 @@ export const getUpdatedNodePosition = ({
           (nodeBounds.height * scaleDiff) / 2);
       return {
         updatedX: currentTranslateX + nodeTranslateX + customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.CENTER_RIGHT:
       nodeTranslateY =
@@ -144,7 +144,7 @@ export const getUpdatedNodePosition = ({
             (Math.abs(svgBounds.x - nodeBounds.x) * scaleDiff +
               nodeBounds.width * scaleDiff)) +
           customOffset.x,
-        updatedY: currentTranslateY + nodeTranslateY + customOffset.y
+        updatedY: currentTranslateY + nodeTranslateY + customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_LEFT:
       return {
@@ -156,7 +156,7 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height * scaleDiff)) +
-          customOffset.y
+          customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_CENTER:
       nodeTranslateX =
@@ -170,7 +170,7 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height * scaleDiff)) +
-          customOffset.y
+          customOffset.y,
       };
     case SCROLL_NODE_POSITIONS.BOTTOM_RIGHT:
       return {
@@ -185,12 +185,12 @@ export const getUpdatedNodePosition = ({
           (svgBounds.height -
             (Math.abs(svgBounds.y - nodeBounds.y) * scaleDiff +
               nodeBounds.height)) +
-          customOffset.y
+          customOffset.y,
       };
     default:
       return {
         updatedX: currentTranslateX,
-        updatedY: currentTranslateY
+        updatedY: currentTranslateY,
       };
   }
 };
@@ -199,14 +199,14 @@ export const getScrollSize = (scale: number) => {
   const [verticalRatio, horizontalRatio] = [Math.max(scale - 0.2, 0.2), scale];
   return [
     ZOOM_CONFIGS.INITIAL_SCROLLBAR_SIZE / verticalRatio,
-    ZOOM_CONFIGS.INITIAL_SCROLLBAR_SIZE / horizontalRatio
+    ZOOM_CONFIGS.INITIAL_SCROLLBAR_SIZE / horizontalRatio,
   ];
 };
 
 const getScrollData = ({
   isVertical,
   state,
-  scrollDelta
+  scrollDelta,
 }: {
   isVertical: boolean;
   state: {
@@ -233,7 +233,7 @@ export const onScrollHandler = ({
   isVertical = true,
   state,
   scrollDelta,
-  scrollLength
+  scrollLength,
 }: {
   isVertical?: boolean;
   state: {
@@ -251,13 +251,13 @@ export const onScrollHandler = ({
     getScrollData({
       isVertical,
       state,
-      scrollDelta
+      scrollDelta,
     });
   const scrollRatio = deltaValue / 10 || 0;
   const sizeRatio = deltaValue / 100 || 0;
   let [newScrollData, newSizeDecrease] = [
     scrollPos + scrollRatio,
-    scrollSizeDecrease
+    scrollSizeDecrease,
   ];
   if (newScrollData < 1) {
     newScrollData = 0;
@@ -267,11 +267,11 @@ export const onScrollHandler = ({
       scrollLength -
       Math.max(
         ZOOM_CONFIGS.MIN_SCROLLBAR_SIZE,
-        scrollSize - Math.abs(newSizeDecrease)
+        scrollSize - Math.abs(newSizeDecrease),
       );
     newScrollData = Math.min(
       scrollLength - (scrollSize + newSizeDecrease),
-      scrollLimit
+      scrollLimit,
     );
     newSizeDecrease -= sizeRatio;
   } else if (newSizeDecrease !== 0) {
@@ -291,7 +291,7 @@ export const onScrollHandler = ({
 export const getBlockClassName = (
   shouldBlockScroll: boolean,
   shouldBlockZoom: boolean,
-  shouldBlockPan: boolean
+  shouldBlockPan: boolean,
 ) => {
   if (shouldBlockScroll && shouldBlockZoom && shouldBlockPan) {
     return `${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`;
@@ -300,7 +300,7 @@ export const getBlockClassName = (
   return [
     shouldBlockScroll && `${BLOCK_EVENTS_CLASS.BLOCK_SCROLL_CLASS}`,
     shouldBlockZoom && `${BLOCK_EVENTS_CLASS.BLOCK_ZOOM_CLASS}`,
-    shouldBlockPan && `${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`
+    shouldBlockPan && `${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`,
   ]
     .filter(Boolean)
     .join(" ");

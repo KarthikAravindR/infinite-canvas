@@ -1,3 +1,5 @@
+import { type Selection, pointer, select } from "d3-selection";
+import { type ZoomBehavior, zoom, zoomIdentity } from "d3-zoom";
 import React, {
   forwardRef,
   memo,
@@ -7,25 +9,23 @@ import React, {
   useMemo,
   useState,
   useRef,
-  type JSX
+  type JSX,
 } from "react";
-import { pointer, select, type Selection } from "d3-selection";
-import { zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 
 import {
   Background,
-  type BackgroundProps
+  type BackgroundProps,
 } from "./components/Background/background";
 import {
-  ZOOM_CONFIGS,
+  COMPONENT_POSITIONS,
   SCROLL_NODE_POSITIONS,
-  COMPONENT_POSITIONS
+  ZOOM_CONFIGS,
 } from "./helpers/constants";
 import {
   clampValue,
   getUpdatedNodePosition,
   shouldBlockEvent,
-  shouldBlockPanEvent
+  shouldBlockPanEvent,
 } from "./helpers/utils";
 
 import styles from "./App.module.css";
@@ -91,7 +91,7 @@ export type ReactInfiniteCanvasHandle = {
     scale,
     shouldUpdateMaxScale,
     maxScale,
-    transitionDuration
+    transitionDuration,
   }: {
     nodeElement?: HTMLElement;
     offset?: { x: number; y: number };
@@ -107,7 +107,7 @@ export type ReactInfiniteCanvasHandle = {
     shouldUpdateMaxScale,
     maxScale,
     transitionDuration,
-    position
+    position,
   }: {
     nodeElement?: HTMLElement;
     offset?: { x: number; y: number };
@@ -119,7 +119,7 @@ export type ReactInfiniteCanvasHandle = {
   }) => void;
   scrollContentHorizontallyCenter: ({
     offset,
-    transitionDuration
+    transitionDuration,
   }: {
     offset?: number;
     transitionDuration?: number;
@@ -128,7 +128,7 @@ export type ReactInfiniteCanvasHandle = {
     duration,
     offset,
     scale,
-    maxZoomLimit
+    maxZoomLimit,
   }: {
     duration?: number;
     offset?: { x: number; y: number };
@@ -157,7 +157,7 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
           </div>
         </ReactInfiniteCanvasRenderer>
       );
-    }
+    },
   );
 
 const ReactInfiniteCanvasRenderer = memo(
@@ -171,7 +171,7 @@ const ReactInfiniteCanvasRenderer = memo(
     customComponents = [],
     scrollBarConfig = {},
     backgroundConfig = {},
-    onCanvasMount = () => {}
+    onCanvasMount = () => {},
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<DOMRect | null>(null);
@@ -194,7 +194,7 @@ const ReactInfiniteCanvasRenderer = memo(
     const d3Zoom = useMemo(() => {
       return zoom<SVGAElement | HTMLDivElement, unknown>().scaleExtent([
         minZoom,
-        maxZoom
+        maxZoom,
       ]);
     }, [maxZoom, minZoom]);
     const d3Selection = useRef(select(canvasRef.current).call(d3Zoom));
@@ -202,7 +202,7 @@ const ReactInfiniteCanvasRenderer = memo(
     const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
       translateY: 0,
-      scale: 1
+      scale: 1,
     });
 
     useImperativeHandle(ref, () => ({
@@ -212,7 +212,7 @@ const ReactInfiniteCanvasRenderer = memo(
         scale,
         shouldUpdateMaxScale,
         maxScale,
-        transitionDuration
+        transitionDuration,
       }: {
         nodeElement?: HTMLElement | undefined;
         offset?: { x: number; y: number };
@@ -228,12 +228,12 @@ const ReactInfiniteCanvasRenderer = memo(
           shouldUpdateMaxScale,
           maxScale,
           transitionDuration,
-          position: SCROLL_NODE_POSITIONS.CENTER_CENTER
+          position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
         }),
       scrollNodeHandler,
       scrollContentHorizontallyCenter,
       fitContentToView,
-      getCanvasState
+      getCanvasState,
     }));
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -277,10 +277,10 @@ const ReactInfiniteCanvasRenderer = memo(
             } else {
               zoomNode.attr(
                 "transform",
-                `translate(${translateX},${translateY}) scale(${scale})`
+                `translate(${translateX},${translateY}) scale(${scale})`,
               );
             }
-          }
+          },
         );
 
       d3Zoom.on("end", () => {
@@ -295,7 +295,7 @@ const ReactInfiniteCanvasRenderer = memo(
           scale,
           shouldUpdateMaxScale,
           maxScale,
-          transitionDuration
+          transitionDuration,
         }: {
           nodeElement?: HTMLElement;
           offset?: { x: number; y: number };
@@ -311,12 +311,12 @@ const ReactInfiniteCanvasRenderer = memo(
             shouldUpdateMaxScale,
             maxScale,
             transitionDuration,
-            position: SCROLL_NODE_POSITIONS.CENTER_CENTER
+            position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
           }),
         scrollNodeHandler,
         scrollContentHorizontallyCenter,
         fitContentToView,
-        getCanvasState
+        getCanvasState,
       });
     }, []);
 
@@ -345,7 +345,7 @@ const ReactInfiniteCanvasRenderer = memo(
           if (panOnScroll && !event.ctrlKey) {
             const scrollDeltaValue = {
               deltaX: event.deltaX,
-              deltaY: event.deltaY
+              deltaY: event.deltaY,
             };
             scrollBarRef.current?.onScrollDeltaChangeHandler(scrollDeltaValue);
             onScrollDeltaHandler(scrollDeltaValue);
@@ -361,12 +361,12 @@ const ReactInfiniteCanvasRenderer = memo(
                   undefined
                 >,
                 nextZoom,
-                pointer(event)
+                pointer(event),
               );
             }
           }
         },
-        { passive: false, capture: true }
+        { passive: false, capture: true },
       );
 
     const onScrollDeltaHandler = (scrollDelta: {
@@ -384,7 +384,7 @@ const ReactInfiniteCanvasRenderer = memo(
             undefined
           >,
           -(scrollDelta.deltaX / currentZoom),
-          -(scrollDelta.deltaY / currentZoom)
+          -(scrollDelta.deltaY / currentZoom),
         );
       }
     };
@@ -396,7 +396,7 @@ const ReactInfiniteCanvasRenderer = memo(
         offset = { x: 0, y: 0 },
         scale,
         maxZoomLimit = ZOOM_CONFIGS.FIT_TO_VIEW_MAX_ZOOM,
-        disableVerticalCenter = false
+        disableVerticalCenter = false,
       }: {
         duration?: number;
         offset?: { x: number; y: number };
@@ -425,10 +425,10 @@ const ReactInfiniteCanvasRenderer = memo(
               clampValue({
                 value: Math.min(
                   maxZoomLimit,
-                  Math.min(heightRatio, widthRatio)
+                  Math.min(heightRatio, widthRatio),
                 ),
                 min: minZoom,
-                max: maxZoom
+                max: maxZoom,
               });
 
             // below code calculates the translateX and translateY values to
@@ -456,10 +456,10 @@ const ReactInfiniteCanvasRenderer = memo(
               .duration(duration)
               .call(d3Zoom.transform, newTransform);
           },
-          { timeout: TIME_TO_WAIT }
+          { timeout: TIME_TO_WAIT },
         );
       },
-      [maxZoom, minZoom]
+      [maxZoom, minZoom],
     );
 
     const scrollNodeHandler = ({
@@ -469,7 +469,7 @@ const ReactInfiniteCanvasRenderer = memo(
       shouldUpdateMaxScale = true,
       maxScale,
       transitionDuration = 300,
-      position = SCROLL_NODE_POSITIONS.TOP_CENTER
+      position = SCROLL_NODE_POSITIONS.TOP_CENTER,
     }: {
       nodeElement?: HTMLElement;
       offset?: { x: number; y: number };
@@ -486,7 +486,7 @@ const ReactInfiniteCanvasRenderer = memo(
           const {
             k: currentScale,
             x: currentTranslateX,
-            y: currentTranslateY
+            y: currentTranslateY,
           } = zoomLevel;
           const canvasNode = select(canvasRef.current);
 
@@ -517,7 +517,7 @@ const ReactInfiniteCanvasRenderer = memo(
             currentTranslateY,
             currentScale,
             updatedScale,
-            customOffset: { x: offset.x, y: offset.y }
+            customOffset: { x: offset.x, y: offset.y },
           });
 
           const newTransform = zoomIdentity
@@ -530,13 +530,13 @@ const ReactInfiniteCanvasRenderer = memo(
             .duration(transitionDuration)
             .call(d3Zoom.transform, newTransform);
         },
-        { timeout: TIME_TO_WAIT }
+        { timeout: TIME_TO_WAIT },
       );
     };
 
     const scrollContentHorizontallyCenter = ({
       offset = 0,
-      transitionDuration = 300
+      transitionDuration = 300,
     }: {
       offset?: number;
       transitionDuration?: number;
@@ -559,7 +559,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
           setZoomTransform({
             ...zoomTransform,
-            translateX: updatedX
+            translateX: updatedX,
           });
 
           const newTransform = zoomIdentity
@@ -572,7 +572,7 @@ const ReactInfiniteCanvasRenderer = memo(
             .duration(transitionDuration)
             .call(d3Zoom.transform, newTransform);
         },
-        { timeout: TIME_TO_WAIT }
+        { timeout: TIME_TO_WAIT },
       );
     };
 
@@ -581,7 +581,7 @@ const ReactInfiniteCanvasRenderer = memo(
         canvasNode: select(canvasRef.current),
         zoomNode: select(zoomContainerRef.current),
         currentPosition: d3Selection.current.property("__zoom"),
-        d3Zoom
+        d3Zoom,
       };
     };
 
@@ -592,7 +592,7 @@ const ReactInfiniteCanvasRenderer = memo(
         const mouseDownEvent = new MouseEvent("mousedown", {
           bubbles: true,
           cancelable: true,
-          view: window
+          view: window,
         });
 
         // Dispatch the mousedown event on the body element
@@ -601,7 +601,7 @@ const ReactInfiniteCanvasRenderer = memo(
     };
 
     const getContainerOffset = useCallback(function offsetHandler(
-      isVertical = true
+      isVertical = true,
     ) {
       const bounds = canvasWrapperBounds.current;
       return isVertical ? (bounds?.top ?? 0) : (bounds?.left ?? 0);
@@ -663,7 +663,7 @@ const ReactInfiniteCanvasRenderer = memo(
             position = COMPONENT_POSITIONS.BOTTOM_LEFT,
             offset = { x: 0, y: 0 },
             overlap = true,
-            className = ""
+            className = "",
           } = config;
           const componentKey = `${position}-${offset.x}-${offset.y}-${overlap}`;
           return (
@@ -680,7 +680,7 @@ const ReactInfiniteCanvasRenderer = memo(
         })}
       </div>
     );
-  }
+  },
 );
 
 const CustomComponentWrapper = ({
@@ -689,7 +689,7 @@ const CustomComponentWrapper = ({
   offset,
   overlap,
   zoomState,
-  className
+  className,
 }: {
   component: JSX.Element;
   position: string;
@@ -712,12 +712,12 @@ const CustomComponentWrapper = ({
     const [positionY, positionX] = updatedPos.split("-");
     return {
       [positionX]: offset.x,
-      [positionY]: offset.y
+      [positionY]: offset.y,
     };
   }, [position, offset]);
 
   const updatedComponent = React.cloneElement(component, {
-    zoomState
+    zoomState,
   });
 
   return (
@@ -725,7 +725,7 @@ const CustomComponentWrapper = ({
       style={{
         position: "absolute",
         ...positionStyle,
-        zIndex: overlap ? 20 : 1
+        zIndex: overlap ? 20 : 1,
       }}
       className={className}
     >

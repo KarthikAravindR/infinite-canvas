@@ -11,12 +11,12 @@ export const EventBlocker: React.FC<EventBlockerProps> = ({
   children,
   shouldBlockScroll = true,
   shouldBlockZoom = true,
-  shouldBlockPan = true
+  shouldBlockPan = true,
 }) => {
   const blockClassName = getBlockClassName(
     shouldBlockScroll,
     shouldBlockZoom,
-    shouldBlockPan
+    shouldBlockPan,
   );
   return <div className={`${blockClassName}`}>{children}</div>;
 };

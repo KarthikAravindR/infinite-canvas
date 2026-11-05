@@ -31,19 +31,19 @@ export const Background = ({
   zoomTransform = {
     scale: 1,
     translateX: 0,
-    translateY: 0
+    translateY: 0,
   },
   className = "",
   minOpacity = 0.8,
   maxOpacity = 1,
   elementColor = "#afb7c7",
-  backgroundColor
+  backgroundColor,
 }: BackgroundProps) => {
   const { scale, translateX, translateY } = zoomTransform;
   const dynamicOpacity = clampValue({
     value: (scale * 10) / (maxZoom * 10),
     min: minOpacity,
-    max: maxOpacity
+    max: maxOpacity,
   });
   const scaledGap = gap * scale;
   const scaledSize = size * scale;

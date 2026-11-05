@@ -24,16 +24,6 @@
     "target": "ESNext",
     "allowJs": true
   },
-  "include": [
-    "examples",
-    "test",
-    "e2e2",
-    "e2e",
-    "src",
-    "vite.config.ts",
-    "./eslint.config.mjs",
-    "playwright.config.ts",
-    ".ladle/config.mjs"
-  ],
+  "include": ["src", "vite.config.ts", "./biome.json"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
   "files": {
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"],
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.css",
+      "tsconfig.json",
+      "vite.config.ts"
+    ],
     "ignore": ["dist"],
     "ignoreUnknown": true
   },
@@ -9,11 +15,11 @@
     "indentStyle": "space"
   },
   "organizeImports": {
-    "enabled": false
+    "enabled": true
   },
   "javascript": {
     "formatter": {
-      "trailingCommas": "none"
+      "trailingCommas": "all"
     }
   },
   "linter": {
