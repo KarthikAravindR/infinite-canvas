@@ -1,5 +1,5 @@
 import React from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, JSX } from "react";
 import { clampValue } from "../../helpers/utils";
 
 import styles from "./styles.module.css";
@@ -39,7 +39,7 @@ export const Background = ({
   maxOpacity = 1,
   elementColor = "#afb7c7",
   backgroundColor,
-}: BackgroundProps) => {
+}: BackgroundProps): JSX.Element => {
   const { scale, translateX, translateY } = zoomTransform;
   const dynamicOpacity = clampValue({
     value: (scale * 10) / (maxZoom * 10),

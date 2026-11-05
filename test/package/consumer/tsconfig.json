@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2022",
+    "jsx": "react-jsx",
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "include": ["index.tsx"]
+}
