@@ -1,6 +1,13 @@
 import { expect, test } from "vitest";
 import { server } from "vitest/browser";
-import { contentPosition, drag, renderCanvas } from "./helpers";
+import {
+  center,
+  contentPosition,
+  drag,
+  type Point,
+  renderCanvas,
+  wheel,
+} from "./helpers";
 
 test("WebKit takes the Safari (div) path; Chromium and Firefox take the svg path", async () => {
   const { host } = await renderCanvas();
@@ -18,4 +25,53 @@ test("drag on empty canvas pans content by the drag distance", async () => {
     x: -50,
     y: -30,
   });
+});
+
+// B10: wheel panning only works after the first pan, so wheel tests warm up
+// with a drag first. Task 11 removes the workaround.
+const warmUp = (empty: Point) => drag(empty, { x: empty.x + 1, y: empty.y });
+
+test("wheel pans content by the wheel delta", async () => {
+  const { node, empty } = await renderCanvas();
+  await warmUp(empty);
+  const before = contentPosition(node);
+  await wheel(empty, { deltaY: 40 });
+  const after = contentPosition(node);
+  expect({ x: after.x - before.x, y: after.y - before.y }).toEqual({
+    x: 0,
+    y: -40,
+  });
+});
+
+test("ctrl+wheel zooms in around the pointer", async () => {
+  const { node } = await renderCanvas();
+  const before = center(node);
+  await wheel(before, { deltaY: -100, ctrlKey: true });
+  expect(node.getBoundingClientRect().width).toBeGreaterThan(80);
+  const after = center(node);
+  expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+});
+
+test("with panOnScroll={false}, wheel zooms instead of panning", async () => {
+  const { node, empty } = await renderCanvas({ panOnScroll: false });
+  await warmUp(empty); // B10 workaround, removed in Task 11
+  await wheel(center(node), { deltaY: -100 });
+  expect(node.getBoundingClientRect().width).toBeGreaterThan(80);
+});
+
+test("zoom stops at maxZoom", async () => {
+  const { node } = await renderCanvas({ maxZoom: 2 });
+  for (let i = 0; i < 20; i++) {
+    await wheel(center(node), { deltaY: -200, ctrlKey: true });
+  }
+  expect(node.getBoundingClientRect().width).toBeCloseTo(160, 0);
+});
+
+test("zoom stops at minZoom", async () => {
+  const { node } = await renderCanvas({ minZoom: 0.5 });
+  for (let i = 0; i < 20; i++) {
+    await wheel(center(node), { deltaY: 200, ctrlKey: true });
+  }
+  expect(node.getBoundingClientRect().width).toBeCloseTo(40, 0);
 });
