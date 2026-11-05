@@ -2,10 +2,7 @@ import { afterEach, beforeEach, vi } from "vitest";
 import { consoleCalls } from "./helpers";
 
 // Known library warnings. Remove each entry once the library stops emitting it.
-const ALLOW = [
-  /Accessing element\.ref was removed in React 19/, // B5, removed in Task 13
-  /React does not recognize the `%s` prop on a DOM element.*zoomState/s, // B5, removed in Task 13
-];
+const ALLOW: RegExp[] = [];
 
 beforeEach(() => {
   consoleCalls.length = 0;

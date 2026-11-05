@@ -142,6 +142,7 @@ export type ReactInfiniteCanvasHandle = {
 interface ReactInfiniteCanvasRendererProps extends ReactInfiniteCanvasProps {
   children: React.ReactElement<object, string>;
   innerRef: React.ForwardedRef<ReactInfiniteCanvasHandle>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
@@ -149,7 +150,11 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
     ({ children, ...restProps }, ref) => {
       const wrapperRef = React.useRef<HTMLDivElement>(null);
       return (
-        <ReactInfiniteCanvasRenderer innerRef={ref} {...restProps}>
+        <ReactInfiniteCanvasRenderer
+          innerRef={ref}
+          contentRef={wrapperRef}
+          {...restProps}
+        >
           <div
             ref={wrapperRef}
             style={{ width: "max-content", height: "max-content" }}
@@ -166,6 +171,7 @@ const ReactInfiniteCanvasRenderer = memo(
     children,
     className = "",
     innerRef: ref,
+    contentRef: flowRendererRef,
     minZoom = ZOOM_CONFIGS.DEFAULT_MIN_ZOOM,
     maxZoom = ZOOM_CONFIGS.DEFAULT_MAX_ZOOM,
     panOnScroll = true,
@@ -187,9 +193,6 @@ const ReactInfiniteCanvasRenderer = memo(
       }) => void;
       resetScrollPos: () => void;
     }>(null);
-    const flowRendererRef = (
-      children as React.ReactElement & { ref: React.RefObject<HTMLElement> }
-    ).ref;
     const isUserPressed = useRef<boolean | null>(null);
     const [wrapperSize, setWrapperSize] = useState<{
       width: number;
@@ -553,7 +556,7 @@ const ReactInfiniteCanvasRenderer = memo(
     }) => {
       if (!flowRendererRef.current) return;
       requestAnimationFrame(() => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current || !flowRendererRef.current) return;
         const zoomLevel = d3Selection.current?.property("__zoom");
         const { k: scale, y: translateY } = zoomLevel;
         const canvasNode = select(canvasRef.current);
@@ -724,9 +727,11 @@ const CustomComponentWrapper = ({
     };
   }, [position, offset]);
 
-  const updatedComponent = React.cloneElement(component, {
-    zoomState,
-  });
+  // DOM elements (string types) would pass zoomState on to the DOM and warn.
+  const updatedComponent =
+    typeof component.type === "string"
+      ? component
+      : React.cloneElement(component, { zoomState });
 
   return (
     <div
