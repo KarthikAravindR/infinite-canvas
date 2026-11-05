@@ -158,9 +158,9 @@ export const ReactInfiniteCanvas: React.FC<ReactInfiniteCanvasProps> =
       const wrapperRef = React.useRef<HTMLDivElement>(null);
       return (
         <ReactInfiniteCanvasRenderer
+          {...restProps}
           innerRef={ref}
           contentRef={wrapperRef}
-          {...restProps}
         >
           <div
             ref={wrapperRef}
