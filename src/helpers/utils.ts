@@ -16,6 +16,7 @@ export const useOnScreen = (
     const element = ref.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         // Update our state when observer callback fires
         setIntersecting(entry.isIntersecting);
         if (entry.isIntersecting && triggerOnce) {
@@ -70,7 +71,7 @@ export const getUpdatedNodePosition = ({
   customOffset: { x: number; y: number };
 }) => {
   const k = updatedScale / currentScale;
-  const [vertical, horizontal] = position.split("-");
+  const [vertical = "", horizontal = ""] = position.split("-");
   if (!Object.values(SCROLL_NODE_POSITIONS).includes(position)) {
     return { updatedX: currentTranslateX * k, updatedY: currentTranslateY * k };
   }
@@ -94,7 +95,7 @@ export const getUpdatedNodePosition = ({
   };
 };
 
-export const getScrollSize = (scale: number) => {
+export const getScrollSize = (scale: number): [number, number] => {
   const [verticalRatio, horizontalRatio] = [Math.max(scale - 0.2, 0.2), scale];
   return [
     ZOOM_CONFIGS.INITIAL_SCROLLBAR_SIZE / verticalRatio,
@@ -145,7 +146,7 @@ export const onScrollHandler = ({
   };
   scrollDelta: { deltaX: number; deltaY: number };
   scrollLength: number;
-}) => {
+}): [number, number] => {
   const { scrollPos, scrollSize, scrollSizeDecrease, deltaValue } =
     getScrollData({
       isVertical,

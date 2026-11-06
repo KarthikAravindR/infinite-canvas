@@ -46,7 +46,7 @@ const expectLanding = (
   position: string,
   opts: Parameters<typeof landing>[1] = {},
 ) => {
-  const [vertical, horizontal] = position.split("-");
+  const [vertical = "", horizontal = ""] = position.split("-");
   const scale = (opts.updatedScale ?? 1) / (opts.currentScale ?? 1);
   expect(landing(position, opts)).toEqual({
     x: axis(

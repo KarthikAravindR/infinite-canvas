@@ -2,8 +2,10 @@
   "compilerOptions": {
     "noEmit": true,
     "esModuleInterop": true,
+    "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "jsx": "preserve",
     "lib": ["dom", "esnext"],
     "module": "esnext",
@@ -11,6 +13,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedParameters": true,
     "rootDir": "./",
     "skipLibCheck": true,
