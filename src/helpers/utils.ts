@@ -12,7 +12,6 @@ export const useOnScreen = (
 ) => {
   const [isIntersecting, setIntersecting] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(function scrollObserve() {
     const element = ref.current;
     const observer = new IntersectionObserver(
@@ -35,6 +34,7 @@ export const useOnScreen = (
         observer.unobserve(element);
       }
     };
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect by design; hook is unused (reported to the maintainer)
   }, []);
 
   return isIntersecting;
@@ -205,8 +205,8 @@ export const getBlockClassName = (
     .join(" ");
 };
 
-export const shouldBlockPanEvent = (event: { target: HTMLElement }) => {
-  const target = event.target as HTMLElement;
+export const shouldBlockPanEvent = (event: { target: Element }) => {
+  const target = event.target;
   if (
     target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_PAN_CLASS}`) ||
     target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`)
@@ -221,7 +221,7 @@ export const shouldBlockEvent = (event: {
   ctrlKey: boolean;
   metaKey: boolean;
 }) => {
-  const target = event.target as HTMLElement;
+  const target = event.target;
 
   if (target.closest(`.${BLOCK_EVENTS_CLASS.BLOCK_EVENTS}`)) return true;
 

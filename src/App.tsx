@@ -191,9 +191,7 @@ const ReactInfiniteCanvasRenderer = memo(
   }: ReactInfiniteCanvasRendererProps) => {
     const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
     const canvasWrapperBounds = useRef<DOMRect | null>(null);
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const canvasRef = useRef<any>(null);
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     const zoomContainerRef = useRef<any>(null);
     const scrollBarRef = useRef<{
       onScrollDeltaChangeHandler: (scrollDelta: {
@@ -264,9 +262,9 @@ const ReactInfiniteCanvasRenderer = memo(
       getCanvasState,
     }));
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     useEffect(function zoomAndPanHandler() {
       const selection = select(
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- canvasRef is any because it holds a <div> or an <svg>; v4 types it
         canvasRef.current as SVGSVGElement | HTMLDivElement,
       ).call(d3Zoom);
       d3Selection.current = selection;
@@ -278,6 +276,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // Pass the fields explicitly: spreading an event drops ctrlKey/metaKey.
           if (
             shouldBlockEvent({
+              // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a wheel event's target is always an element
               target: event.target as HTMLElement,
               ctrlKey: event.ctrlKey,
               metaKey: event.metaKey,
@@ -310,12 +309,13 @@ const ReactInfiniteCanvasRenderer = memo(
 
       d3Zoom
         .filter((event: MouseEvent | WheelEvent | TouchEvent) => {
-          if (event.type === "wheel") return (event as WheelEvent).ctrlKey;
+          if (event.type === "wheel") return event.ctrlKey;
           // d3's default: primary button only, no ctrl+click
+          // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- d3 passes any; a TouchEvent has no button, and undefined is falsy, as in d3's default filter
           if ((event as MouseEvent).button || event.ctrlKey) return false;
           if (
             event.target instanceof Element &&
-            shouldBlockPanEvent({ target: event.target as HTMLElement })
+            shouldBlockPanEvent({ target: event.target })
           )
             return false;
           if (event.type === "mousedown" && !isUserPressed.current) {
@@ -327,7 +327,7 @@ const ReactInfiniteCanvasRenderer = memo(
         .on(
           "zoom",
           (event: {
-            sourceEvent: { ctrlKey: boolean };
+            sourceEvent: { ctrlKey: boolean } | null;
             type: string;
             transform: { k: number; x: number; y: number };
           }) => {
@@ -337,8 +337,8 @@ const ReactInfiniteCanvasRenderer = memo(
               canvasWrapperRef.current?.classList.add(styles.panning);
             }
 
-            const zoomTransform = event.transform;
-            const { x: translateX, y: translateY, k: scale } = zoomTransform;
+            const transform = event.transform;
+            const { x: translateX, y: translateY, k: scale } = transform;
             const div = zoomContainerRef.current;
             setZoomTransform({ translateX, translateY, scale });
             if (isSafari && div) {
@@ -460,6 +460,7 @@ const ReactInfiniteCanvasRenderer = memo(
         resizeObserver?.disconnect();
         selection.on(".zoom", null);
       };
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: the onCanvasMount handle keeps mount-time props such as maxZoom, fixed in a follow-up fix: PR
     }, []);
 
     const onScrollDeltaHandler = (scrollDelta: {
@@ -477,7 +478,6 @@ const ReactInfiniteCanvasRenderer = memo(
       }
     };
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     const fitContentToView = useCallback(
       function fitContentHandler({
         duration = 500,
@@ -537,9 +537,11 @@ const ReactInfiniteCanvasRenderer = memo(
           canvasNode
             .transition()
             .duration(duration)
+            // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
             .call(d3Zoom.transform, newTransform);
         });
       },
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- d3Zoom and flowRendererRef never change identity
       [maxZoom, minZoom],
     );
 
@@ -571,9 +573,9 @@ const ReactInfiniteCanvasRenderer = memo(
         const canvasNode = select(canvasRef.current);
 
         const getUpdatedScale = () => {
-          const getClampedScale = (scale: number) => {
-            if (!maxScale) return scale;
-            return Math.min(maxScale, scale);
+          const getClampedScale = (value: number) => {
+            if (!maxScale) return value;
+            return Math.min(maxScale, value);
           };
 
           if (!scale) return getClampedScale(currentScale);
@@ -608,6 +610,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
+          // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
           .call(d3Zoom.transform, newTransform);
       });
     };
@@ -648,6 +651,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
+          // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
           .call(d3Zoom.transform, newTransform);
       });
     };
@@ -694,7 +698,7 @@ const ReactInfiniteCanvasRenderer = memo(
               ref={canvasRef}
               className={styles.canvas}
               aria-label="Infinite canvas"
-              // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot be the zoom surface
+              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <fieldset> cannot be the zoom surface
               role="group"
             >
               <div ref={zoomContainerRef}>
@@ -706,7 +710,7 @@ const ReactInfiniteCanvasRenderer = memo(
               ref={canvasRef}
               className={styles.canvas}
               aria-label="Infinite canvas"
-              // biome-ignore lint/a11y/useSemanticElements: a <fieldset> cannot be the zoom surface
+              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a <fieldset> cannot be the zoom surface
               role="group"
             >
               <g ref={zoomContainerRef}>
@@ -746,7 +750,7 @@ const ReactInfiniteCanvasRenderer = memo(
             position = COMPONENT_POSITIONS.BOTTOM_LEFT,
             offset = { x: 0, y: 0 },
             overlap = true,
-            className = "",
+            className: componentClassName = "",
           } = config;
           const componentKey = `${position}-${offset.x}-${offset.y}-${overlap}`;
           return (
@@ -757,7 +761,7 @@ const ReactInfiniteCanvasRenderer = memo(
               offset={offset}
               overlap={overlap}
               zoomState={{ ...zoomTransform, minZoom, maxZoom }}
-              className={className}
+              className={componentClassName}
             />
           );
         })}

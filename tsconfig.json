@@ -18,12 +18,6 @@
     "target": "ESNext",
     "types": ["d3-transition", "node"]
   },
-  "include": [
-    "src",
-    "test",
-    "vite.config.ts",
-    "vitest.config.ts",
-    "./biome.json"
-  ],
+  "include": ["src", "test", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist", "test/package"]
 }

@@ -176,7 +176,7 @@ export async function renderCanvas(
     empty: at(500, 330),
     at,
     unmount: screen.unmount,
-    async rerender(next: CanvasProps) {
+    rerender: async (next: CanvasProps) => {
       await screen.rerender(ui(next));
       await settle();
     },

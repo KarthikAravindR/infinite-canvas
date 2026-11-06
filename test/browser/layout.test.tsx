@@ -60,7 +60,7 @@ test("overlap sets the stacking order", async () => {
     ],
   });
   const z = (id: string) =>
-    (host.querySelector(`[data-testid="${id}"]`)?.parentElement as HTMLElement)
+    host.querySelector<HTMLElement>(`[data-testid="${id}"]`)!.parentElement!
       .style.zIndex;
   expect(z("over")).toBe("20");
   expect(z("under")).toBe("1");

@@ -18,7 +18,7 @@ import {
 test("onCanvasMount receives the handle", async () => {
   let handle: ReactInfiniteCanvasHandle | undefined;
   await renderCanvas({ onCanvasMount: (h) => (handle = h) });
-  expect(Object.keys(handle ?? {}).sort()).toEqual([
+  expect(Object.keys(handle ?? {}).toSorted()).toEqual([
     "fitContentToView",
     "getCanvasState",
     "scrollContentHorizontallyCenter",

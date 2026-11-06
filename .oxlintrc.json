@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "jsx-a11y"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/react-in-jsx-scope": "error",
+    // Style hint; fix changes the bundle.
+    "unicorn/consistent-function-scoping": "off",
+    // Style hint; fix changes the bundle.
+    "typescript/no-unnecessary-template-expression": "off"
+  },
+  "overrides": [
+    {
+      // Tests use the automatic JSX runtime, and an unchecked cast there fails the test anyway.
+      "files": ["test/**"],
+      "rules": {
+        "react/react-in-jsx-scope": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      // React Compiler rules: these files can't comply until the v4 store refactor (spec D2).
+      "files": ["src/App.tsx", "src/helpers/utils.ts"],
+      "rules": {
+        "react/immutability": "off",
+        "react/exhaustive-effect-dependencies": "off",
+        "react/memo-dependencies": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist", "CHANGELOG.md", "docs/", "playground/"]
+}

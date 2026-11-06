@@ -7,7 +7,7 @@ import { fire, nextFrame, settle } from "./helpers";
 // v4 target: canvas 0, custom component 0 unless it reads the transform.
 test("baseline: 30 pan moves render the canvas 30 times, a custom component 30 times and children 0 times", async () => {
   const counts = { canvas: 0, custom: 0, child: 0 };
-  const Custom = (_: { zoomState?: unknown }) => {
+  const Custom = () => {
     counts.custom++;
     return <div />;
   };
