@@ -59,16 +59,18 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '^24.5.0' # Node 24.5.0+ bundles npm 11.5.1+
+          node-version: '^24.18.0' # Node 24.18.0+ bundles npm 11.16.0+
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      - name: Check npm >= 11.5.1 (required for trusted publishing)
+      - name: Check npm >= 11.15.0 (required for npm stage publish)
         run: |
           npm -v
-          node -e 'const [a, b, c] = process.argv[1].split(".").map(Number); process.exit(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))) ? 0 : 1)' "$(npm -v)"
+          node -e 'const [a, b] = process.argv[1].split(".").map(Number); process.exit(a > 11 || (a === 11 && b >= 15) ? 0 : 1)' "$(npm -v)"
       - run: npm ci --ignore-scripts
       - run: npm run build
-      - name: Publish to npm
+      # The trusted publisher allows only staging. A maintainer approves each
+      # version on npmjs.com (Staged Packages tab) with 2FA before anyone can install it.
+      - name: Stage the release on npm
         env:
           VERSION: ${{ needs.release-please.outputs.version }}
           BRANCH: ${{ github.ref_name }}
@@ -81,5 +83,5 @@ jobs:
             echo "::error::Branch v3 produced version $VERSION. Refusing to publish."
             exit 1
           fi
-          echo "Publishing $VERSION with dist-tag $tag"
-          npm publish --tag "$tag"
+          echo "Staging $VERSION with dist-tag $tag"
+          npm stage publish --tag "$tag"
