@@ -47,7 +47,7 @@
     "dev": "vite",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "lint": "biome ci src",
+    "lint": "oxlint --type-aware --deny-warnings --report-unused-disable-directives",
     "typecheck": "tsc --noEmit",
     "test:dist": "TEST_DIST=1 vitest run --project browser",
     "test": "vitest run",
@@ -60,7 +60,6 @@
     "@types/d3-zoom": "^3.0.9"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.3",
     "@microsoft/api-extractor": "^7.60.1",
     "@types/d3-transition": "^3.0.9",
     "@types/node": "^22.20.5",
@@ -73,6 +72,8 @@
     "d3-zoom": "3.0.0",
     "esbuild": "^0.28.2",
     "oxfmt": "0.76.0",
+    "oxlint": "^1.91.0",
+    "oxlint-tsgolint": "^7.0.2006",
     "playwright": "^1.64.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -85,11 +86,6 @@
   "peerDependencies": {
     "react": ">=17 <20",
     "react-dom": ">=17 <20"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,json}": [
-      "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
-    ]
   },
   "engines": {
     "node": ">=20.19.0"

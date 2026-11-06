@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "jsx-a11y"],
+  "categories": { "correctness": "error", "suspicious": "warn" },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/react-in-jsx-scope": "error",
+    // Style only.
+    "unicorn/consistent-function-scoping": "off",
+    "typescript/no-unnecessary-template-expression": "off"
+  },
+  "overrides": [
+    {
+      // Tests use the automatic JSX runtime and may cast freely.
+      "files": ["test/**"],
+      "rules": {
+        "react/react-in-jsx-scope": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      // Not ready for the React Compiler yet. Its rules also skip any component
+      // with a react-hooks disable, so they won't check App until those are gone.
+      "files": ["src/App.tsx", "src/helpers/utils.ts"],
+      "rules": {
+        "react/immutability": "off",
+        "react/exhaustive-effect-dependencies": "off",
+        "react/memo-dependencies": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist", "CHANGELOG.md", "docs/", "playground/"]
+}

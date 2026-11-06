@@ -18,7 +18,7 @@ const firefox = playwright(
             CFFIXED_USER_HOME: mkdtempSync(
               path.join(tmpdir(), "pw-firefox-home-"),
             ),
-          } as Record<string, string>,
+          },
         },
       }
     : {},

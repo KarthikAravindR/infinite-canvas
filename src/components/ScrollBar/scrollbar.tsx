@@ -164,7 +164,6 @@ export const ScrollBar = forwardRef(
       });
     }
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     const handleScroll = useCallback(
       function resizeHandler(event: MouseEvent, isVertical: boolean) {
         if (!userDragConfig.current.isDragging) return;
@@ -236,6 +235,7 @@ export const ScrollBar = forwardRef(
 
         if (!isEndReached && diff !== 0) onScrollDeltaHandler(newDeltaValue());
       },
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: stale thumb size after a zoom
       [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x],
     );
 
