@@ -66,14 +66,13 @@ test("scrollbar follows container resizes", async () => {
   await expect.poll(offsetInHost).toBeLessThanOrEqual(100);
 });
 
-// After a zoom the thumb size changes; the drag must use the new size, or the
-// canvas keeps panning once the thumb is stuck at the end.
+// After a zoom, dragging the thumb past the end used to keep panning.
 test("a thumb drag stops panning when the thumb reaches the end after a zoom", async () => {
   const { host, node } = await renderCanvas({
     scrollBarConfig: { renderScrollBar: true },
   });
   await wheel(center(node), { deltaY: 100, ctrlKey: true });
-  // The new size takes two renders; a mousedown before them binds the old one.
+  // Wait for the resized thumb before grabbing it.
   await expect.poll(() => thumb(host).getBoundingClientRect().width).toBe(100);
   const hostRight = host.getBoundingClientRect().right;
   const left = () => thumb(host).getBoundingClientRect().left;
@@ -82,10 +81,9 @@ test("a thumb drag stops panning when the thumb reaches the end after a zoom", a
   const move = (x: number) =>
     fire("mousemove", { x, y: from.y }, { movementX: 10, movementY: 0 });
   fire("mousedown", from);
-  // The scrollbar reads the grab offset on the first move: keep it in place.
+  // The first move sets the grab offset.
   fire("mousemove", from, { movementX: 0, movementY: 0 });
-  // The thumb moves through a React update that can land after the next
-  // frame, so wait for it on every step.
+  // The thumb updates through React, so wait for it on each step.
   let x = from.x;
   while (!atEnd() && x < hostRight) {
     const before = left();
@@ -95,8 +93,7 @@ test("a thumb drag stops panning when the thumb reaches the end after a zoom", a
     await expect.poll(() => left() >= before + 5 || atEnd()).toBe(true);
   }
   expect(atEnd()).toBe(true);
-  // The content moves synchronously, so compare it only with itself. The old
-  // size stopped the pan 50px later (at 550, not 500): 5 steps.
+  // Content moves synchronously; 5 steps cover the old size's extra 50px.
   const endX = contentPosition(node).x;
   for (let i = 1; i <= 5; i++) {
     move(x + 10 * i);
