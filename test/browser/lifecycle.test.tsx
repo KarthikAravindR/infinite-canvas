@@ -48,13 +48,16 @@ test("zoom keeps working after maxZoom changes", async () => {
 // The README says the ref and onCanvasMount hand out the same handle.
 test("the onCanvasMount handle uses the current props", async () => {
   async function checkFit(via: "mount" | "ref") {
-    let mounted: ReactInfiniteCanvasHandle | undefined;
-    const onCanvasMount = (h: ReactInfiniteCanvasHandle) => (mounted = h);
+    const onCanvasMount = vi.fn<(h: ReactInfiniteCanvasHandle) => void>();
     const { ref, node, rerender, unmount } = await renderCanvas({
       onCanvasMount,
     });
     await rerender({ onCanvasMount, maxZoom: 0.5 });
-    const handle = via === "mount" ? mounted : ref.current;
+    // The README promises "Called once per mount": a fix that re-runs the
+    // mount effect breaks that.
+    expect(onCanvasMount).toHaveBeenCalledTimes(1);
+    const handle =
+      via === "mount" ? onCanvasMount.mock.calls[0]?.[0] : ref.current;
     handle?.fitContentToView({ duration: 0 });
     await settle();
     await expect
