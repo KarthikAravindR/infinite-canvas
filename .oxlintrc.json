@@ -12,7 +12,7 @@
   },
   "overrides": [
     {
-      // Tests use the automatic JSX runtime, and an unchecked cast there fails the test anyway.
+      // Tests use the automatic JSX runtime, and unchecked casts are acceptable in tests.
       "files": ["test/**"],
       "rules": {
         "react/react-in-jsx-scope": "off",
@@ -20,7 +20,10 @@
       }
     },
     {
-      // React Compiler rules: these files can't comply until the v4 store refactor (spec D2).
+      // React Compiler rules skip any function with a react-hooks/* disable. The two in
+      // ReactInfiniteCanvasRenderer switch them off for that whole component, so this is inert there today.
+      // In utils.ts the only hit is the unused useOnScreen hook. ScrollBar isn't detected as a component.
+      // v4 restores coverage only once those disables are gone and ScrollBar is detected; removing this alone is not enough.
       "files": ["src/App.tsx", "src/helpers/utils.ts"],
       "rules": {
         "react/immutability": "off",

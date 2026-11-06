@@ -537,7 +537,7 @@ const ReactInfiniteCanvasRenderer = memo(
           canvasNode
             .transition()
             .duration(duration)
-            // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
+            // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
             .call(d3Zoom.transform, newTransform);
         });
       },
@@ -610,7 +610,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
-          // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
+          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
           .call(d3Zoom.transform, newTransform);
       });
     };
@@ -651,7 +651,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
-          // oxlint-disable-next-line typescript/unbound-method -- d3 calls transform with the selection as this
+          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
           .call(d3Zoom.transform, newTransform);
       });
     };

@@ -47,7 +47,7 @@
     "dev": "vite",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "lint": "oxlint --type-aware --deny-warnings",
+    "lint": "oxlint --type-aware --deny-warnings --report-unused-disable-directives",
     "typecheck": "tsc --noEmit",
     "test:dist": "TEST_DIST=1 vitest run --project browser",
     "test": "vitest run",
