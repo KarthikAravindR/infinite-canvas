@@ -13,6 +13,10 @@ jobs:
     name: check (React ${{ matrix.react }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Same version as the playwright devDependency.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+      options: --user 1001
     strategy:
       matrix:
         react: [18, 19]
@@ -28,7 +32,6 @@ jobs:
       - name: Use React 18
         if: matrix.react == 18
         run: npm install --no-save react@18 react-dom@18 # zizmor: ignore[adhoc-packages] the React 18 leg overrides the lockfile on purpose
-      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run check
 
   pr-title:
