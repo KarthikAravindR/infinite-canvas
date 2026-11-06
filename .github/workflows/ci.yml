@@ -12,6 +12,7 @@ jobs:
   check:
     name: check (React ${{ matrix.react }})
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         react: [18, 19]
