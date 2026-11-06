@@ -110,7 +110,10 @@ test("onZoom fires for fitContentToView", async () => {
   const { ref, content } = await renderCanvas({ onZoom });
   ref.current!.fitContentToView({ duration: 0, maxZoomLimit: 2 });
   await expect.poll(() => onZoom.mock.lastCall?.[0].scale).toBeCloseTo(4 / 3);
-  expect(content.getBoundingClientRect().height).toBeCloseTo(400, 0);
+  // On the Safari/WebKit div path, a 10ms CSS transition moves the content after onZoom fires.
+  await expect
+    .poll(() => content.getBoundingClientRect().height)
+    .toBeCloseTo(400, 0);
 });
 
 // An in-flight transition (or drag) must not call onZoom after unmount.
