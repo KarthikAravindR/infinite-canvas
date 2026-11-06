@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
     "noEmit": true,
-    "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "importHelpers": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["dom", "esnext"],
@@ -16,14 +12,11 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "dist",
     "rootDir": "./",
     "skipLibCheck": true,
-    "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["d3-transition", "node"],
-    "allowJs": true
+    "types": ["d3-transition", "node"]
   },
   "include": ["src", "test", "vite.config.ts", "vitest.config.ts", "./biome.json"],
   "exclude": ["node_modules", "dist", "test/package"]
