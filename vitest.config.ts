@@ -58,6 +58,8 @@ export default defineConfig({
           name: "browser",
           include: ["test/browser/**/*.test.tsx"],
           setupFiles: ["test/browser/setup.ts"],
+          // A cold WebKit page on a busy CI runner can draw no frames for over 1s (the default).
+          expect: { poll: { timeout: 3000 } },
           browser: {
             enabled: true,
             headless: true,
