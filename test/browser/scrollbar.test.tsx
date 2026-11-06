@@ -73,23 +73,35 @@ test("a thumb drag stops panning when the thumb reaches the end after a zoom", a
     scrollBarConfig: { renderScrollBar: true },
   });
   await wheel(center(node), { deltaY: 100, ctrlKey: true });
-  const hostLeft = host.getBoundingClientRect().left;
+  // The new size takes two renders; a mousedown before them binds the old one.
+  await expect.poll(() => thumb(host).getBoundingClientRect().width).toBe(100);
+  const hostRight = host.getBoundingClientRect().right;
+  const left = () => thumb(host).getBoundingClientRect().left;
+  const atEnd = () => thumb(host).getBoundingClientRect().right >= hostRight;
   const from = center(thumb(host));
+  const move = (x: number) =>
+    fire("mousemove", { x, y: from.y }, { movementX: 10, movementY: 0 });
   fire("mousedown", from);
-  let prev = from.x;
-  let stuck = 0;
-  let lastRight = thumb(host).getBoundingClientRect().right;
-  let lastContent = contentPosition(node).x;
-  for (let x = from.x + 10; x <= hostLeft + 600; x += 10) {
-    fire("mousemove", { x, y: from.y }, { movementX: x - prev, movementY: 0 });
-    prev = x;
+  // The scrollbar reads the grab offset on the first move: keep it in place.
+  fire("mousemove", from, { movementX: 0, movementY: 0 });
+  // The thumb moves through a React update that can land after the next
+  // frame, so wait for it on every step.
+  let x = from.x;
+  while (!atEnd() && x < hostRight) {
+    const before = left();
+    x += 10;
+    move(x);
     await nextFrame();
-    const right = thumb(host).getBoundingClientRect().right;
-    const content = contentPosition(node).x;
-    if (right === lastRight && content !== lastContent) stuck++;
-    lastRight = right;
-    lastContent = content;
+    await expect.poll(() => left() >= before + 5 || atEnd()).toBe(true);
   }
-  fire("mouseup", { x: prev, y: from.y });
-  expect(stuck).toBe(0);
+  expect(atEnd()).toBe(true);
+  // The content moves synchronously, so compare it only with itself. The old
+  // size stopped the pan 50px later (at 550, not 500): 5 steps.
+  const endX = contentPosition(node).x;
+  for (let i = 1; i <= 5; i++) {
+    move(x + 10 * i);
+    await nextFrame();
+    expect(contentPosition(node).x).toBe(endX);
+  }
+  fire("mouseup", { x: x + 50, y: from.y });
 });
