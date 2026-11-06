@@ -91,7 +91,7 @@ createRoot(document.getElementById("root")!).render(<InfiniteCanvas />);
 | `scrollBarConfig`  | `object`                                      | `{}`    | Scrollbar settings. The scrollbar is off unless `renderScrollBar` is `true`. See [scrollBarConfig](#scrollbarconfig). |
 | `backgroundConfig` | `BackgroundProps`                             | `{}`    | Settings for the dotted background. See [backgroundConfig](#backgroundconfig).                                        |
 | `customComponents` | `Array<object>`                               | `[]`    | Components drawn on top of the canvas that do not move with it. See [customComponents](#customcomponents).            |
-| `onCanvasMount`    | `(handle: ReactInfiniteCanvasHandle) => void` | -       | Called once, when the canvas mounts. It receives the [handle methods](#handle-methods).                               |
+| `onCanvasMount`    | `(handle: ReactInfiniteCanvasHandle) => void` | -       | Called once per mount (twice under React Strict Mode in development). Gets the [handle methods](#handle-methods).     |
 | `onZoom`           | `(zoomState: ZoomState) => void`              | -       | Called on every transform change. See [onZoom](#onzoom).                                                              |
 
 ### onZoom
@@ -109,7 +109,7 @@ The canvas always calls the latest `onZoom` you passed.
 When an element inside the canvas gets focus and sits partly or fully outside the visible area, the canvas pans to center it. This lets keyboard users reach every element.
 
 - It does not pan when the element is already fully visible.
-- It does not pan during a mouse press.
+- It does not pan during a press (mouse, touch or pen).
 - It still pans for focus inside an `EventBlocker` that blocks panning, so keyboard users can reach it.
 
 Set `panOnFocus={false}` to turn this off.
@@ -144,7 +144,7 @@ The canvas draws a dotted background. Use `backgroundConfig` to change it, or `b
 | `elementColor`    | `string`  | `"#afb7c7"` | Dot color.                                         |
 | `backgroundColor` | CSS color | `undefined` | Background color.                                  |
 
-`maxZoom` and `zoomTransform` also exist on `Background`. The canvas sets both for you.
+`maxZoom` and `zoomTransform` also exist on `Background`. The canvas sets both for you. A value you pass in `backgroundConfig` overrides the canvas's value.
 
 ### customComponents
 
@@ -166,13 +166,13 @@ If `component` is a React component, it receives a `zoomState` prop: `{ translat
 
 Get the handle from the `ref` or from `onCanvasMount`. All five methods take one options object. Every field is optional unless noted.
 
-| Method                                     | What it does                                                             |
-| ------------------------------------------ | ------------------------------------------------------------------------ |
-| `scrollNodeToCenter(options)`              | Moves an element to the center of the view.                              |
-| `scrollNodeHandler(options)`               | Moves an element to a position you choose.                               |
-| `scrollContentHorizontallyCenter(options)` | Centers the content horizontally. Keeps the vertical position and scale. |
-| `fitContentToView(options)`                | Scales and centers the content so it fits the view.                      |
-| `getCanvasState()`                         | Returns the d3 objects and the current position.                         |
+| Method                                     | What it does                                                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `scrollNodeToCenter(options)`              | Moves an element to the center of the view.                                                                |
+| `scrollNodeHandler(options)`               | Moves an element to a position you choose.                                                                 |
+| `scrollContentHorizontallyCenter(options)` | Centers the content horizontally. Keeps the vertical position and scale.                                   |
+| `fitContentToView(options)`                | Scales the content to fit the view and centers it horizontally. See [fitContentToView](#fitcontenttoview). |
+| `getCanvasState()`                         | Returns the current position and the d3 objects (d3-zoom, the library this canvas uses for pan and zoom).  |
 
 The animated methods call `onZoom` on every frame.
 
@@ -180,15 +180,15 @@ The animated methods call `onZoom` on every frame.
 
 `scrollNodeToCenter` is `scrollNodeHandler` with `position` set to `SCROLL_NODE_POSITIONS.CENTER_CENTER`.
 
-| Option                 | Type                       | Default                            | Description                                                                                       |
-| ---------------------- | -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `nodeElement`          | `HTMLElement`              | -                                  | The element to move. Without it, nothing happens.                                                 |
-| `offset`               | `{ x: number; y: number }` | `{ x: 0, y: 0 }`                   | Extra shift in pixels.                                                                            |
-| `scale`                | `number`                   | current scale                      | Scale to end at.                                                                                  |
-| `shouldUpdateMaxScale` | `boolean`                  | `true`                             | `true`: the end scale is at least the current scale. `false`: `scale` is used as given.           |
-| `maxScale`             | `number`                   | none                               | Upper limit for the end scale.                                                                    |
-| `transitionDuration`   | `number`                   | `300`                              | Animation time in milliseconds.                                                                   |
-| `position`             | `string`                   | `SCROLL_NODE_POSITIONS.TOP_CENTER` | `scrollNodeHandler` only. Where the element ends up. An unknown value keeps the current position. |
+| Option                 | Type                       | Default                            | Description                                                                                                                 |
+| ---------------------- | -------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `nodeElement`          | `HTMLElement`              | -                                  | The element to move. Without it, nothing happens.                                                                           |
+| `offset`               | `{ x: number; y: number }` | `{ x: 0, y: 0 }`                   | Extra shift in pixels.                                                                                                      |
+| `scale`                | `number`                   | current scale                      | Scale to end at.                                                                                                            |
+| `shouldUpdateMaxScale` | `boolean`                  | `true`                             | Applies only when you pass `scale`. `true`: the end scale is at least the current scale. `false`: `scale` is used as given. |
+| `maxScale`             | `number`                   | none                               | Upper limit for the end scale.                                                                                              |
+| `transitionDuration`   | `number`                   | `300`                              | Animation time in milliseconds.                                                                                             |
+| `position`             | `string`                   | `SCROLL_NODE_POSITIONS.TOP_CENTER` | `scrollNodeHandler` only. Where the element ends up. An unknown value keeps the current position.                           |
 
 `SCROLL_NODE_POSITIONS` has `TOP_LEFT`, `TOP_RIGHT`, `TOP_CENTER`, `BOTTOM_LEFT`, `BOTTOM_CENTER`, `BOTTOM_RIGHT`, `CENTER_LEFT`, `CENTER_RIGHT` and `CENTER_CENTER`.
 
@@ -201,6 +201,8 @@ The animated methods call `onZoom` on every frame.
 
 ### fitContentToView
 
+It always centers the content horizontally. It centers the content vertically only when the content's width divided by its height is larger than the view's. Otherwise the content sits at the top. `offset` then shifts it.
+
 | Option         | Type                       | Default          | Description                                                                                      |
 | -------------- | -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------ |
 | `duration`     | `number`                   | `500`            | Animation time in milliseconds.                                                                  |
@@ -210,7 +212,7 @@ The animated methods call `onZoom` on every frame.
 
 ### getCanvasState
 
-Returns `{ canvasNode, zoomNode, currentPosition, d3Zoom }`. `canvasNode` and `zoomNode` are d3 selections. `currentPosition` is `{ k, x, y }`. `d3Zoom` is the d3 zoom behavior.
+Returns `{ canvasNode, zoomNode, currentPosition, d3Zoom }`. `canvasNode` and `zoomNode` are d3 selections. `currentPosition` is a d3 `ZoomTransform`: `{ k, x, y }` plus methods. `d3Zoom` is the d3 zoom behavior.
 
 ## EventBlocker
 
@@ -224,13 +226,17 @@ import { EventBlocker } from "react-infinite-canvas";
 </EventBlocker>;
 ```
 
-| Prop                | Type      | Default | Effect over the blocker                                                            |
-| ------------------- | --------- | ------- | ---------------------------------------------------------------------------------- |
-| `shouldBlockPan`    | `boolean` | `true`  | Dragging does not pan the canvas.                                                  |
-| `shouldBlockScroll` | `boolean` | `true`  | The plain wheel does not pan the canvas. Ctrl+wheel still zooms it.                |
-| `shouldBlockZoom`   | `boolean` | `true`  | Ctrl+wheel (or cmd+wheel) does not zoom the canvas. The plain wheel still pans it. |
+| Prop                | Type      | Default | Effect over the blocker                                                                            |
+| ------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------- |
+| `shouldBlockPan`    | `boolean` | `true`  | Dragging does not pan the canvas.                                                                  |
+| `shouldBlockScroll` | `boolean` | `true`  | The plain wheel does not pan the canvas. Ctrl+wheel still zooms it.                                |
+| `shouldBlockZoom`   | `boolean` | `true`  | Ctrl+wheel does not zoom the canvas, and cmd+wheel does not pan it. The plain wheel still pans it. |
 
-With all three flags `true`, the canvas ignores every wheel event over the blocker.
+With `shouldBlockScroll` and `shouldBlockZoom` both `true`, the canvas ignores every wheel event over the blocker.
+
+With the default `panOnScroll`, the canvas zooms only on ctrl+wheel. Most browsers report a trackpad pinch as ctrl+wheel, so a pinch zooms too. Cmd+wheel pans.
+
+Over a blocker with `shouldBlockZoom`, the canvas does not handle ctrl+wheel or a pinch, so the browser's own page zoom may apply.
 
 ## Accessibility
 

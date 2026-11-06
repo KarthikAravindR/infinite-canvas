@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { EventBlocker } from "../../src/main";
 import {
   contentPosition,
   fire,
@@ -131,6 +132,7 @@ test("focus during a pointer press does not pan against the drag", async () => {
   const button = host.querySelector('[data-testid="edge"]') as HTMLElement;
   const before = contentPosition(content);
   const from = at(570, 110);
+  fire("pointerdown", from);
   fire("mousedown", from);
   button.focus();
   let prev = from;
@@ -140,8 +142,41 @@ test("focus during a pointer press does not pan against the drag", async () => {
     prev = p;
     await nextFrame();
   }
+  fire("pointerup", prev);
   fire("mouseup", prev);
   await afterPanWindow();
   const after = contentPosition(content);
   expect([after.x - before.x, after.y - before.y]).toEqual([-40, -20]);
+});
+
+// d3's filter returns early for pan-blocked targets, so it never sees this press.
+test("a press inside a pan-blocked area does not pan to the focused control", async () => {
+  const { host, content, at } = await renderCanvas(
+    {},
+    {},
+    {
+      extraContent: (
+        <EventBlocker
+          shouldBlockPan
+          shouldBlockScroll={false}
+          shouldBlockZoom={false}
+        >
+          <input
+            data-testid="edge-input"
+            style={{ position: "absolute", left: 540, top: 100, width: 120 }}
+          />
+        </EventBlocker>
+      ),
+    },
+  );
+  const input = host.querySelector('[data-testid="edge-input"]') as HTMLElement;
+  const before = contentPosition(content);
+  const p = at(570, 110);
+  fire("pointerdown", p);
+  fire("mousedown", p);
+  input.focus();
+  fire("pointerup", p);
+  fire("mouseup", p);
+  await afterPanWindow();
+  expect(contentPosition(content)).toEqual(before);
 });

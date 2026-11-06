@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { center, contentPosition, drag, renderCanvas } from "./helpers";
 
 // The pan matters: before the first pan no scrollbar renders anyway (B16).
@@ -12,6 +12,15 @@ const thumb = (host: Element) =>
   host.querySelector('[data-id="horizontal-scrollbar"]') as Element;
 
 test("scrollbar renders on mount", async () => {
+  const { host } = await renderCanvas({
+    scrollBarConfig: { renderScrollBar: true },
+  });
+  expect(thumb(host)).not.toBeNull();
+});
+
+// jsdom (Jest, Vitest with environment: "jsdom") has no ResizeObserver.
+test("renders without ResizeObserver", async () => {
+  vi.stubGlobal("ResizeObserver", undefined);
   const { host } = await renderCanvas({
     scrollBarConfig: { renderScrollBar: true },
   });
