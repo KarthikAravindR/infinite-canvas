@@ -22,7 +22,10 @@ const inside = (host: Element, el: Element) => {
   const b = el.getBoundingClientRect();
   const h = host.getBoundingClientRect();
   return (
-    b.left >= h.left && b.top >= h.top && b.right <= h.right && b.bottom <= h.bottom
+    b.left >= h.left &&
+    b.top >= h.top &&
+    b.right <= h.right &&
+    b.bottom <= h.bottom
   );
 };
 

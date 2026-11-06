@@ -49,8 +49,16 @@ const expectLanding = (
   const [vertical, horizontal] = position.split("-");
   const scale = (opts.updatedScale ?? 1) / (opts.currentScale ?? 1);
   expect(landing(position, opts)).toEqual({
-    x: axis(horizontal, view.width, size.width * (opts.currentScale ?? 1) * scale),
-    y: axis(vertical, view.height, size.height * (opts.currentScale ?? 1) * scale),
+    x: axis(
+      horizontal,
+      view.width,
+      size.width * (opts.currentScale ?? 1) * scale,
+    ),
+    y: axis(
+      vertical,
+      view.height,
+      size.height * (opts.currentScale ?? 1) * scale,
+    ),
   });
 };
 
@@ -70,7 +78,6 @@ test.each(ALL)(
 
 // B14: a node left of / above the canvas origin.
 const offScreen = { cx: -400, cy: -300 };
-test.each(ALL)(
-  "positions an off-screen node correctly: %s",
-  (position) => expectLanding(position, offScreen),
+test.each(ALL)("positions an off-screen node correctly: %s", (position) =>
+  expectLanding(position, offScreen),
 );

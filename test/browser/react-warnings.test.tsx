@@ -6,7 +6,7 @@ test("renders without React warnings", async () => {
   await renderCanvas({
     customComponents: [{ component: <button type="button">b</button> }],
   });
-  expect(
-    consoleCalls.filter((m) => /element\.ref|zoomState/.test(m)),
-  ).toEqual([]);
+  expect(consoleCalls.filter((m) => /element\.ref|zoomState/.test(m))).toEqual(
+    [],
+  );
 });

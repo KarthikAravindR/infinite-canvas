@@ -15,7 +15,9 @@ const firefox = playwright(
         launchOptions: {
           env: {
             ...process.env,
-            CFFIXED_USER_HOME: mkdtempSync(path.join(tmpdir(), "pw-firefox-home-")),
+            CFFIXED_USER_HOME: mkdtempSync(
+              path.join(tmpdir(), "pw-firefox-home-"),
+            ),
           } as Record<string, string>,
         },
       }

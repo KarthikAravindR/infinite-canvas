@@ -2,21 +2,33 @@
   "name": "react-infinite-canvas",
   "version": "3.5.0",
   "description": "An Infinite Canvas Component for React where you can place your component anywhere on the canvas with zoom in, zoom out and panning functionality. It also supports custom components to control the canvas.",
+  "keywords": [
+    "canvas",
+    "component",
+    "css modules",
+    "diagram",
+    "infinite",
+    "integration",
+    "react",
+    "space",
+    "typescript",
+    "vite",
+    "workflow"
+  ],
+  "license": "MIT",
+  "author": "Karthik Aravind",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
+  },
+  "files": [
+    "*.md",
+    "dist"
+  ],
   "type": "module",
   "main": "./dist/react-infinite-canvas.umd.cjs",
   "module": "./dist/react-infinite-canvas.js",
   "types": "./dist/main.d.ts",
-  "scripts": {
-    "build": "vite build && npm run build:types",
-    "dev": "vite",
-    "lint": "biome ci src",
-    "typecheck": "tsc --noEmit",
-    "test:dist": "TEST_DIST=1 vitest run --project browser",
-    "test": "vitest run",
-    "test:package": "node scripts/check-package.mjs",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:dist && npm run test:package",
-    "build:types": "tsc -p tsconfig.build.json && api-extractor run --local && node -e \"const fs=require('fs');fs.copyFileSync('dist/main.d.ts','dist/main.d.cts');fs.rmSync('dist/types',{recursive:true})\""
-  },
   "exports": {
     ".": {
       "import": {
@@ -30,36 +42,22 @@
     },
     "./package.json": "./package.json"
   },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,json}": [
-      "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
-    ]
+  "scripts": {
+    "build": "vite build && npm run build:types",
+    "dev": "vite",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "biome ci src",
+    "typecheck": "tsc --noEmit",
+    "test:dist": "TEST_DIST=1 vitest run --project browser",
+    "test": "vitest run",
+    "test:package": "node scripts/check-package.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build && npm run test:dist && npm run test:package",
+    "build:types": "tsc -p tsconfig.build.json && api-extractor run --local && node -e \"const fs=require('fs');fs.copyFileSync('dist/main.d.ts','dist/main.d.cts');fs.rmSync('dist/types',{recursive:true})\""
   },
-  "keywords": [
-    "infinite",
-    "canvas",
-    "workflow",
-    "diagram",
-    "space",
-    "react",
-    "typescript",
-    "css modules",
-    "vite",
-    "component",
-    "integration"
-  ],
-  "engines": {
-    "node": ">=20.19.0"
-  },
-  "files": [
-    "*.md",
-    "dist"
-  ],
-  "author": "Karthik Aravind",
-  "license": "MIT",
-  "peerDependencies": {
-    "react": ">=17 <20",
-    "react-dom": ">=17 <20"
+  "dependencies": {
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-zoom": "^3.0.9"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.3",
@@ -74,6 +72,7 @@
     "d3-selection": "3.0.0",
     "d3-zoom": "3.0.0",
     "esbuild": "^0.28.2",
+    "oxfmt": "0.76.0",
     "playwright": "^1.64.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -83,12 +82,16 @@
     "vitest": "^5.1.0",
     "vitest-browser-react": "^2.3.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
+  "peerDependencies": {
+    "react": ">=17 <20",
+    "react-dom": ">=17 <20"
   },
-  "dependencies": {
-    "@types/d3-selection": "^3.0.12",
-    "@types/d3-zoom": "^3.0.9"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json}": [
+      "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
+    ]
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

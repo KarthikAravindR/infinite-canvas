@@ -23,7 +23,10 @@ const run = (name, cmd, cwd = root) => {
 
 try {
   run("npm pack", `npm pack --pack-destination "${tmp}"`);
-  const tgz = join(tmp, readdirSync(tmp).find((f) => f.endsWith(".tgz")));
+  const tgz = join(
+    tmp,
+    readdirSync(tmp).find((f) => f.endsWith(".tgz")),
+  );
   run("publint", `npx --yes publint@0.3.25 --strict "${tgz}"`);
   run("are the types wrong", `npx --yes @arethetypeswrong/cli@0.18.5 "${tgz}"`);
   cpSync(join(root, "test/package/consumer"), consumer, { recursive: true });
@@ -37,7 +40,11 @@ try {
       consumer,
     );
   }
-  run("import (ESM)", `node --input-type=module -e "import('react-infinite-canvas')"`, consumer);
+  run(
+    "import (ESM)",
+    `node --input-type=module -e "import('react-infinite-canvas')"`,
+    consumer,
+  );
   run("require (CJS)", `node -e "require('react-infinite-canvas')"`, consumer);
 
   // webpack 5 needs fully specified imports in a "type": "module" package,

@@ -43,7 +43,10 @@ test("fitContentToView honors scale and offset", async () => {
 
 test("scrollNodeToCenter centers a node", async () => {
   const { ref, host, node } = await renderCanvas();
-  ref.current?.scrollNodeToCenter({ nodeElement: node as HTMLElement, transitionDuration: 0 });
+  ref.current?.scrollNodeToCenter({
+    nodeElement: node as HTMLElement,
+    transitionDuration: 0,
+  });
   await expect
     .poll(() => {
       const c = relative(host, center(node));
@@ -59,7 +62,10 @@ test("scrollNodeToCenter centers the node when the page is scrolled", async () =
   try {
     window.scrollTo(0, 1000);
     const { ref, host, node } = await renderCanvas();
-    ref.current?.scrollNodeToCenter({ nodeElement: node as HTMLElement, transitionDuration: 0 });
+    ref.current?.scrollNodeToCenter({
+      nodeElement: node as HTMLElement,
+      transitionDuration: 0,
+    });
     await expect
       .poll(() => {
         const c = relative(host, center(node));
@@ -96,9 +102,7 @@ test("imperative methods work without requestIdleCallback", async () => {
   vi.stubGlobal("requestIdleCallback", undefined);
   const { ref, host, content } = await renderCanvas();
   ref.current!.fitContentToView({ duration: 0 });
-  await expect
-    .poll(() => relative(host, contentPosition(content)).x)
-    .toBe(100);
+  await expect.poll(() => relative(host, contentPosition(content)).x).toBe(100);
 });
 
 const renderBig = async (strict: boolean, fitOnMount: boolean) => {
@@ -132,7 +136,8 @@ const renderBig = async (strict: boolean, fitOnMount: boolean) => {
       fits:
         b.width <= h.width + 1 &&
         b.height <= h.height + 1 &&
-        (Math.abs(b.width - h.width) <= 1 || Math.abs(b.height - h.height) <= 1),
+        (Math.abs(b.width - h.width) <= 1 ||
+          Math.abs(b.height - h.height) <= 1),
       scale: b.width / 2400,
     };
   };
