@@ -264,7 +264,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
     useEffect(function zoomAndPanHandler() {
       const selection = select(
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- canvasRef is any because it holds a <div> or an <svg>; v4 types it
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- canvasRef holds a <div> or an <svg>
         canvasRef.current as SVGSVGElement | HTMLDivElement,
       ).call(d3Zoom);
       d3Selection.current = selection;
@@ -276,7 +276,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // Pass the fields explicitly: spreading an event drops ctrlKey/metaKey.
           if (
             shouldBlockEvent({
-              // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a wheel event's target is always an element
+              // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- wheel events always target an element
               target: event.target as HTMLElement,
               ctrlKey: event.ctrlKey,
               metaKey: event.metaKey,
@@ -311,7 +311,7 @@ const ReactInfiniteCanvasRenderer = memo(
         .filter((event: MouseEvent | WheelEvent | TouchEvent) => {
           if (event.type === "wheel") return event.ctrlKey;
           // d3's default: primary button only, no ctrl+click
-          // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- d3 passes any; a TouchEvent has no button, and undefined is falsy, as in d3's default filter
+          // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- touch events have no button
           if ((event as MouseEvent).button || event.ctrlKey) return false;
           if (
             event.target instanceof Element &&
@@ -460,7 +460,7 @@ const ReactInfiniteCanvasRenderer = memo(
         resizeObserver?.disconnect();
         selection.on(".zoom", null);
       };
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: the onCanvasMount handle keeps mount-time props such as maxZoom, fixed in a follow-up fix: PR
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: the handle keeps mount-time props
     }, []);
 
     const onScrollDeltaHandler = (scrollDelta: {
@@ -537,11 +537,11 @@ const ReactInfiniteCanvasRenderer = memo(
           canvasNode
             .transition()
             .duration(duration)
-            // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
+            // oxlint-disable-next-line typescript/unbound-method -- zoom.transform doesn't use this
             .call(d3Zoom.transform, newTransform);
         });
       },
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- d3Zoom and flowRendererRef never change identity
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- d3Zoom and flowRendererRef never change
       [maxZoom, minZoom],
     );
 
@@ -610,7 +610,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
-          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
+          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform doesn't use this
           .call(d3Zoom.transform, newTransform);
       });
     };
@@ -651,7 +651,7 @@ const ReactInfiniteCanvasRenderer = memo(
           // @ts-ignore
           .transition()
           .duration(transitionDuration)
-          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform reads its first argument, never this; .call passes the selection as that argument
+          // oxlint-disable-next-line typescript/unbound-method -- zoom.transform doesn't use this
           .call(d3Zoom.transform, newTransform);
       });
     };

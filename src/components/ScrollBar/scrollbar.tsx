@@ -235,7 +235,7 @@ export const ScrollBar = forwardRef(
 
         if (!isEndReached && diff !== 0) onScrollDeltaHandler(newDeltaValue());
       },
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: after a zoom, a stale thumb size lets a drag keep panning past the end, fixed in a follow-up fix: PR
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: stale thumb size after a zoom
       [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x],
     );
 

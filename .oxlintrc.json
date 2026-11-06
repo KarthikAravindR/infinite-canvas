@@ -5,14 +5,13 @@
   "rules": {
     "react/rules-of-hooks": "error",
     "react/react-in-jsx-scope": "error",
-    // Style hint; fix changes the bundle.
+    // Style only.
     "unicorn/consistent-function-scoping": "off",
-    // Style hint; fix changes the bundle.
     "typescript/no-unnecessary-template-expression": "off"
   },
   "overrides": [
     {
-      // Tests use the automatic JSX runtime, and unchecked casts are acceptable in tests.
+      // Tests use the automatic JSX runtime and may cast freely.
       "files": ["test/**"],
       "rules": {
         "react/react-in-jsx-scope": "off",
@@ -20,10 +19,8 @@
       }
     },
     {
-      // React Compiler rules skip any function with a react-hooks/* disable. The two in
-      // ReactInfiniteCanvasRenderer switch them off for that whole component, so this is inert there today.
-      // In utils.ts the only hit is the unused useOnScreen hook. ScrollBar isn't detected as a component.
-      // v4 restores coverage only once those disables are gone and ScrollBar is detected; removing this alone is not enough.
+      // Not ready for the React Compiler yet. Its rules also skip any component
+      // with a react-hooks disable, so they won't check App until those are gone.
       "files": ["src/App.tsx", "src/helpers/utils.ts"],
       "rules": {
         "react/immutability": "off",

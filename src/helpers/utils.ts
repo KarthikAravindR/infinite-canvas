@@ -34,7 +34,7 @@ export const useOnScreen = (
         observer.unobserve(element);
       }
     };
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only effect by design; hook is unused (reported to the maintainer)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
   }, []);
 
   return isIntersecting;
