@@ -327,7 +327,7 @@ const ReactInfiniteCanvasRenderer = memo(
         }
       });
 
-      // Delegate through `latest`, so this handle follows props like the ref's.
+      // Go through latest so this handle sees current props.
       onCanvasMount({
         scrollNodeToCenter: (...args) =>
           latest.current.handle.scrollNodeToCenter(...args),
@@ -411,7 +411,7 @@ const ReactInfiniteCanvasRenderer = memo(
         resizeObserver?.disconnect();
         selection.on(".zoom", null);
       };
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount-only: wires d3 once; methods are read through latest.current.handle so the handle stays current
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
     }, []);
 
     const onScrollDeltaHandler = (scrollDelta: {
@@ -670,7 +670,7 @@ const ReactInfiniteCanvasRenderer = memo(
     };
     useImperativeHandle(ref, () => handle);
 
-    // Props and methods the mount-time listeners and handle read at event time.
+    // Latest props and methods for the listeners set up on mount.
     const latest = useRef({ panOnScroll, panOnFocus, onZoom, handle });
     useEffect(() => {
       latest.current = { panOnScroll, panOnFocus, onZoom, handle };
