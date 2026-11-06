@@ -163,7 +163,7 @@ test("a throwing onZoom does not stop the pan from moving the node", async () =>
     window.removeEventListener("error", onError);
     // The browser also logs the uncaught error to the console; it is expected here.
     for (let i = consoleCalls.length - 1; i >= 0; i--) {
-      if (consoleCalls[i].includes("consumer bug")) consoleCalls.splice(i, 1);
+      if (consoleCalls[i]?.includes("consumer bug")) consoleCalls.splice(i, 1);
     }
   }
 });

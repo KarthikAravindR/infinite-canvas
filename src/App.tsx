@@ -333,7 +333,11 @@ const ReactInfiniteCanvasRenderer = memo(
           }) => {
             // Unmounted: a drag can still emit zoom events after the cleanup.
             if (!canvasWrapperRef.current) return;
-            if (event.sourceEvent?.ctrlKey === false && event.type === "zoom") {
+            if (
+              styles.panning &&
+              event.sourceEvent?.ctrlKey === false &&
+              event.type === "zoom"
+            ) {
               canvasWrapperRef.current?.classList.add(styles.panning);
             }
 
@@ -355,7 +359,9 @@ const ReactInfiniteCanvasRenderer = memo(
 
       d3Zoom.on("end", () => {
         isUserPressed.current = false;
-        canvasWrapperRef.current?.classList.remove(styles.panning);
+        if (styles.panning) {
+          canvasWrapperRef.current?.classList.remove(styles.panning);
+        }
       });
 
       onCanvasMount({
@@ -554,13 +560,13 @@ const ReactInfiniteCanvasRenderer = memo(
       transitionDuration = 300,
       position = SCROLL_NODE_POSITIONS.TOP_CENTER,
     }: {
-      nodeElement?: HTMLElement;
-      offset?: { x: number; y: number };
-      scale?: number;
-      shouldUpdateMaxScale?: boolean;
-      maxScale?: number;
-      transitionDuration?: number;
-      position?: string;
+      nodeElement?: HTMLElement | undefined;
+      offset?: { x: number; y: number } | undefined;
+      scale?: number | undefined;
+      shouldUpdateMaxScale?: boolean | undefined;
+      maxScale?: number | undefined;
+      transitionDuration?: number | undefined;
+      position?: string | undefined;
     }) => {
       requestAnimationFrame(() => {
         if (!nodeElement || !canvasRef.current) return;
@@ -790,7 +796,7 @@ const CustomComponentWrapper = ({
       ? position
       : COMPONENT_POSITIONS.BOTTOM_LEFT;
 
-    const [positionY, positionX] = updatedPos.split("-");
+    const [positionY = "", positionX = ""] = updatedPos.split("-");
     return {
       ...(positionX === "center"
         ? {
