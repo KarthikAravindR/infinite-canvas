@@ -12,6 +12,7 @@
     "ignoreUnknown": true
   },
   "formatter": {
+    "enabled": false,
     "indentStyle": "space"
   },
   "organizeImports": {

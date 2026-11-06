@@ -27,7 +27,9 @@ test("custom components sit at their corner plus offset", async () => {
   });
   const h = host.getBoundingClientRect();
   const rect = (id: string) =>
-    host.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect() as DOMRect;
+    host
+      .querySelector(`[data-testid="${id}"]`)
+      ?.getBoundingClientRect() as DOMRect;
   const near = (a: number, b: number) =>
     expect(Math.abs(a - b)).toBeLessThanOrEqual(1);
 

@@ -24,7 +24,15 @@ const props: ReactInfiniteCanvasProps = { children: <div />, onZoom };
 const bg: BackgroundProps = {};
 const blocker: EventBlockerProps = { children: null };
 
-export const used = [n, handle, props, bg, blocker, COMPONENT_POSITIONS, SCROLL_NODE_POSITIONS];
+export const used = [
+  n,
+  handle,
+  props,
+  bg,
+  blocker,
+  COMPONENT_POSITIONS,
+  SCROLL_NODE_POSITIONS,
+];
 
 export const App = () => (
   <ReactInfiniteCanvas>

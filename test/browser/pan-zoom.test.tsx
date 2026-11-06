@@ -1,12 +1,6 @@
 import { expect, test } from "vitest";
 import { server } from "vitest/browser";
-import {
-  center,
-  contentPosition,
-  drag,
-  renderCanvas,
-  wheel,
-} from "./helpers";
+import { center, contentPosition, drag, renderCanvas, wheel } from "./helpers";
 
 test("WebKit takes the Safari (div) path; Chromium and Firefox take the svg path", async () => {
   const { host } = await renderCanvas();

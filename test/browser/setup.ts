@@ -20,6 +20,8 @@ afterEach(() => {
     (m) => !ALLOW.some((re) => re.test(m)),
   );
   if (unexpected.length) {
-    throw new Error(`Unexpected console output:\n${unexpected.join("\n---\n")}`);
+    throw new Error(
+      `Unexpected console output:\n${unexpected.join("\n---\n")}`,
+    );
   }
 });

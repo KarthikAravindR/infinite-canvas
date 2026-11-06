@@ -51,7 +51,8 @@ test("scrollbar follows container resizes", async () => {
     scrollBarConfig: { renderScrollBar: true },
   });
   const offsetInHost = () =>
-    thumb(host).getBoundingClientRect().left - host.getBoundingClientRect().left;
+    thumb(host).getBoundingClientRect().left -
+    host.getBoundingClientRect().left;
   expect(offsetInHost()).toBeGreaterThan(100);
   host.style.width = "100px";
   await expect.poll(offsetInHost).toBeLessThanOrEqual(100);
