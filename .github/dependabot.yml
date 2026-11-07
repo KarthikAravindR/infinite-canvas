@@ -16,6 +16,10 @@ updates:
         patterns: ["d3-*"]
       dev-tooling:
         dependency-type: development
+    ignore:
+      # Match the oldest Node we run (22).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
