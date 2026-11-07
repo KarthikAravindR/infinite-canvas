@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.1](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.5.0...v3.5.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* scrollbar drag stops at the end after zooming ([#81](https://github.com/KarthikAravindR/infinite-canvas/issues/81)) ([2e97c9a](https://github.com/KarthikAravindR/infinite-canvas/commit/2e97c9ae02b77b2175d089f998938cf440aa3bce))
+* the onCanvasMount handle follows prop changes, like the ref ([#83](https://github.com/KarthikAravindR/infinite-canvas/issues/83)) ([bb4a369](https://github.com/KarthikAravindR/infinite-canvas/commit/bb4a369dca7f206f147a2f983e7f20e16cafb015))
+
 ## [3.5.0](https://github.com/KarthikAravindR/infinite-canvas/compare/v3.4.1...v3.5.0) (2026-11-06)
 
 
