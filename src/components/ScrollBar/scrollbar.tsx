@@ -235,8 +235,16 @@ export const ScrollBar = forwardRef(
 
         if (!isEndReached && diff !== 0) onScrollDeltaHandler(newDeltaValue());
       },
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: stale thumb size after a zoom
-      [verticalOffsetHeight, horizontalOffsetWidth, offset.y, offset.x],
+      [
+        verticalOffsetHeight,
+        horizontalOffsetWidth,
+        offset.y,
+        offset.x,
+        scrollConfig.verticalSize,
+        scrollConfig.horizontalSize,
+        onScrollDeltaHandler,
+        getContainerOffset,
+      ],
     );
 
     const moveListener = useRef<((event: MouseEvent) => void) | null>(null);
