@@ -219,48 +219,11 @@ const ReactInfiniteCanvasRenderer = memo(
       null,
       undefined
     > | null>(null);
-    // Props the mount-time listeners read at event time.
-    const latest = useRef({ panOnScroll, panOnFocus, onZoom });
-    useEffect(() => {
-      latest.current = { panOnScroll, panOnFocus, onZoom };
-    });
-
     const [zoomTransform, setZoomTransform] = useState({
       translateX: 0,
       translateY: 0,
       scale: 1,
     });
-
-    useImperativeHandle(ref, () => ({
-      scrollNodeToCenter: ({
-        nodeElement,
-        offset,
-        scale,
-        shouldUpdateMaxScale,
-        maxScale,
-        transitionDuration,
-      }: {
-        nodeElement?: HTMLElement | undefined;
-        offset?: { x: number; y: number };
-        scale?: number;
-        shouldUpdateMaxScale?: boolean;
-        maxScale?: number;
-        transitionDuration?: number;
-      }) =>
-        scrollNodeHandler({
-          nodeElement,
-          offset,
-          scale,
-          shouldUpdateMaxScale,
-          maxScale,
-          transitionDuration,
-          position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
-        }),
-      scrollNodeHandler,
-      scrollContentHorizontallyCenter,
-      fitContentToView,
-      getCanvasState,
-    }));
 
     useEffect(function zoomAndPanHandler() {
       const selection = select(
@@ -364,35 +327,17 @@ const ReactInfiniteCanvasRenderer = memo(
         }
       });
 
+      // Go through latest so this handle sees current props.
       onCanvasMount({
-        scrollNodeToCenter: ({
-          nodeElement,
-          offset,
-          scale,
-          shouldUpdateMaxScale,
-          maxScale,
-          transitionDuration,
-        }: {
-          nodeElement?: HTMLElement;
-          offset?: { x: number; y: number };
-          scale?: number;
-          shouldUpdateMaxScale?: boolean;
-          maxScale?: number;
-          transitionDuration?: number;
-        }) =>
-          scrollNodeHandler({
-            nodeElement,
-            offset,
-            scale,
-            shouldUpdateMaxScale,
-            maxScale,
-            transitionDuration,
-            position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
-          }),
-        scrollNodeHandler,
-        scrollContentHorizontallyCenter,
-        fitContentToView,
-        getCanvasState,
+        scrollNodeToCenter: (...args) =>
+          latest.current.handle.scrollNodeToCenter(...args),
+        scrollNodeHandler: (...args) =>
+          latest.current.handle.scrollNodeHandler(...args),
+        scrollContentHorizontallyCenter: (...args) =>
+          latest.current.handle.scrollContentHorizontallyCenter(...args),
+        fitContentToView: (...args) =>
+          latest.current.handle.fitContentToView(...args),
+        getCanvasState: () => latest.current.handle.getCanvasState(),
       });
 
       const wrapper = canvasWrapperRef.current;
@@ -466,7 +411,7 @@ const ReactInfiniteCanvasRenderer = memo(
         resizeObserver?.disconnect();
         selection.on(".zoom", null);
       };
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- known bug: the handle keeps mount-time props
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
     }, []);
 
     const onScrollDeltaHandler = (scrollDelta: {
@@ -692,6 +637,44 @@ const ReactInfiniteCanvasRenderer = memo(
       const bounds = canvasWrapperBounds.current;
       return isVertical ? (bounds?.top ?? 0) : (bounds?.left ?? 0);
     }, []);
+
+    const handle: ReactInfiniteCanvasHandle = {
+      scrollNodeToCenter: ({
+        nodeElement,
+        offset,
+        scale,
+        shouldUpdateMaxScale,
+        maxScale,
+        transitionDuration,
+      }: {
+        nodeElement?: HTMLElement | undefined;
+        offset?: { x: number; y: number };
+        scale?: number;
+        shouldUpdateMaxScale?: boolean;
+        maxScale?: number;
+        transitionDuration?: number;
+      }) =>
+        scrollNodeHandler({
+          nodeElement,
+          offset,
+          scale,
+          shouldUpdateMaxScale,
+          maxScale,
+          transitionDuration,
+          position: SCROLL_NODE_POSITIONS.CENTER_CENTER,
+        }),
+      scrollNodeHandler,
+      scrollContentHorizontallyCenter,
+      fitContentToView,
+      getCanvasState,
+    };
+    useImperativeHandle(ref, () => handle);
+
+    // Latest props and methods for the listeners set up on mount.
+    const latest = useRef({ panOnScroll, panOnFocus, onZoom, handle });
+    useEffect(() => {
+      latest.current = { panOnScroll, panOnFocus, onZoom, handle };
+    });
 
     return (
       <div className={styles.container}>

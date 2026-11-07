@@ -45,6 +45,30 @@ test("zoom keeps working after maxZoom changes", async () => {
   expect(node.getBoundingClientRect().width).toBeCloseTo(160, 0);
 });
 
+// The ref and onCanvasMount should behave the same.
+test("the onCanvasMount handle uses the current props", async () => {
+  async function checkFit(via: "mount" | "ref") {
+    const onCanvasMount = vi.fn<(h: ReactInfiniteCanvasHandle) => void>();
+    const { ref, node, rerender, unmount } = await renderCanvas({
+      onCanvasMount,
+    });
+    await rerender({ onCanvasMount, maxZoom: 0.5 });
+    // Still called only once.
+    expect(onCanvasMount).toHaveBeenCalledTimes(1);
+    const handle =
+      via === "mount" ? onCanvasMount.mock.calls[0]?.[0] : ref.current;
+    handle?.fitContentToView({ duration: 0 });
+    await settle();
+    await expect
+      .poll(() => node.getBoundingClientRect().width / 80) // 80px wide at scale 1
+      .toBeCloseTo(0.5, 1);
+    await unmount();
+  }
+  // The ref handle uses the new maxZoom.
+  await checkFit("ref");
+  await checkFit("mount");
+});
+
 // The wheel listener is attached once, so it must read panOnScroll at event time.
 test("changing panOnScroll after mount takes effect", async () => {
   const { node, rerender } = await renderCanvas();
