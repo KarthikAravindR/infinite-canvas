@@ -21,7 +21,7 @@
     {
       // Not ready for the React Compiler yet. Its rules also skip any component
       // with a react-hooks disable, so they won't check App until those are gone.
-      "files": ["src/App.tsx", "src/helpers/utils.ts"],
+      "files": ["src/App.tsx"],
       "rules": {
         "react/immutability": "off",
         "react/exhaustive-effect-dependencies": "off",
