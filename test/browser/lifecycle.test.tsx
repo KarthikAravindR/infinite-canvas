@@ -35,7 +35,7 @@ test("unmounting during a pending fitContentToView does not throw", async () => 
   await nextFrame();
 });
 
-// B9: changing maxZoom after mount leaves the zoom limit stale.
+// Changing maxZoom after mount used to leave the zoom limit stale.
 test("zoom keeps working after maxZoom changes", async () => {
   const { node, rerender } = await renderCanvas({ maxZoom: 4 });
   await rerender({ maxZoom: 2 });

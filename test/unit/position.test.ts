@@ -69,14 +69,14 @@ test.each(ALL)(
   (position) => expectLanding(position),
 );
 
-// B13: the zoom changes.
+// The zoom changes.
 const zoomIn = { currentScale: 1, updatedScale: 2 };
 test.each(ALL)(
   "positions a node correctly when the zoom changes: %s",
   (position) => expectLanding(position, zoomIn),
 );
 
-// B14: a node left of / above the canvas origin.
+// A node left of or above the canvas origin.
 const offScreen = { cx: -400, cy: -300 };
 test.each(ALL)("positions an off-screen node correctly: %s", (position) =>
   expectLanding(position, offScreen),

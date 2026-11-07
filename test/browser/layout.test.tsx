@@ -83,7 +83,7 @@ test("background draws a dot pattern; backgroundConfig.disable removes it", asyn
   expect(host.querySelectorAll("pattern").length).toBe(0);
 });
 
-// B6: every Background uses the same pattern id, so two canvases collide.
+// Every Background used the same pattern id, so two canvases collided.
 test("two canvases get different background patterns", async () => {
   await render(
     <>
@@ -100,7 +100,7 @@ test("two canvases get different background patterns", async () => {
   expect(new Set(ids).size).toBe(2);
 });
 
-// B7: the bottom-center slot has no horizontal centering.
+// The bottom-center slot used to have no horizontal centering.
 test("bottom-center component is horizontally centered", async () => {
   const { host } = await renderCanvas({
     customComponents: [

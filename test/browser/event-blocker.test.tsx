@@ -42,7 +42,7 @@ test("shouldBlockScroll: wheel over the blocker does not pan", async () => {
   });
 });
 
-// B17: the wheel handler called `shouldBlockEvent({ ...event })`. Spreading a
+// The wheel handler used to call `shouldBlockEvent({ ...event })`. Spreading a
 // WheelEvent drops the inherited ctrlKey/metaKey getters, so a zoom-only
 // blocker never blocked ctrl+wheel.
 test("shouldBlockZoom: ctrl+wheel over the blocker does not zoom", async () => {
@@ -55,7 +55,7 @@ test("shouldBlockZoom: ctrl+wheel over the blocker does not zoom", async () => {
   expect(node.getBoundingClientRect().width).toBe(80);
 });
 
-// B17, the other side: the spread made every wheel look like a plain scroll,
+// The same spread made every wheel look like a plain scroll,
 // so a scroll-only blocker also blocked ctrl+wheel. Now ctrl+wheel zooms there.
 test("shouldBlockScroll only: ctrl+wheel over the blocker zooms", async () => {
   const { node, at } = await renderCanvas(
@@ -82,8 +82,8 @@ test("pan works on empty canvas next to a blocker", async () => {
   });
 });
 
-// B2: a drag that starts on a pan-blocked box leaves stale state, so the next
-// pan jumps by that drag's distance.
+// A drag that started on a pan-blocked box used to leave stale state, so the
+// next pan jumped by that drag's distance.
 test("blocked drag does not make the next pan jump", async () => {
   const { node, blocked, empty } = await renderCanvas();
   const before = contentPosition(node);
@@ -97,7 +97,7 @@ test("blocked drag does not make the next pan jump", async () => {
   });
 });
 
-// B3: the blocker swallows mousedown before the child's React handler sees it.
+// The blocker used to swallow mousedown before the child's handler saw it.
 test("onMouseDown fires inside a pan-blocked EventBlocker", async () => {
   const onMouseDown = vi.fn();
   const { blocked } = await renderCanvas({}, { onMouseDown });

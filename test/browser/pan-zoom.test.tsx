@@ -52,7 +52,7 @@ test("zoom stops at minZoom", async () => {
   expect(node.getBoundingClientRect().width).toBeCloseTo(40, 0);
 });
 
-// B10: the wheel handler is only attached after the first pan.
+// The wheel handler used to be attached only after the first pan.
 test("wheel pans on the first render", async () => {
   const { node, empty } = await renderCanvas();
   const before = contentPosition(node);
@@ -64,7 +64,7 @@ test("wheel pans on the first render", async () => {
   });
 });
 
-// B12: any mouse button pans, not just the primary one.
+// Any mouse button used to pan, not just the primary one.
 test("only the primary button pans", async () => {
   const { node, empty } = await renderCanvas();
   const before = contentPosition(node);
