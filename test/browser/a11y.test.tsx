@@ -35,7 +35,7 @@ const afterPanWindow = () => new Promise((r) => setTimeout(r, 700));
 const renderFar = (props = {}) =>
   renderCanvas(props, {}, { extraContent: farButton });
 
-// B15: keyboard focus on an off-screen element pans it into view.
+// Keyboard focus on an off-screen element pans it into view.
 test("focusing an off-screen element pans it into view", async () => {
   const { host } = await renderFar();
   const button = host.querySelector('[data-testid="far"]') as HTMLElement;

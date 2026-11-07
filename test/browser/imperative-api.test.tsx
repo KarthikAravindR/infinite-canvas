@@ -97,7 +97,7 @@ test("getCanvasState reports the position", async () => {
   }).toEqual({ k: 1, x: -50, y: -30 });
 });
 
-// B1: the methods must not need requestIdleCallback (WebKit lacks it).
+// The methods must not need requestIdleCallback (WebKit lacks it).
 test("imperative methods work without requestIdleCallback", async () => {
   vi.stubGlobal("requestIdleCallback", undefined);
   const { ref, host, content } = await renderCanvas();
@@ -143,8 +143,8 @@ const renderBig = async (strict: boolean, fitOnMount: boolean) => {
   };
 };
 
-// B18 probe: did not reproduce with a fixed-size host (fit scale is 0.25 in
-// every browser/React/StrictMode combination, also from onCanvasMount).
+// The first fit from onCanvasMount gives scale 0.25 in every browser, React
+// version and StrictMode combination.
 for (const strict of [false, true]) {
   const name = strict ? " (StrictMode)" : "";
   test(`fitContentToView called from onCanvasMount fits large content${name}`, async () => {

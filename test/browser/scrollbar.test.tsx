@@ -9,7 +9,7 @@ import {
   wheel,
 } from "./helpers";
 
-// The pan matters: before the first pan no scrollbar renders anyway (B16).
+// Pan first: scrollbars used to appear only after the first pan.
 test("no scrollbar without renderScrollBar", async () => {
   const { host, empty } = await renderCanvas();
   await drag(empty, { x: empty.x + 1, y: empty.y });
@@ -35,8 +35,8 @@ test("renders without ResizeObserver", async () => {
   expect(thumb(host)).not.toBeNull();
 });
 
-// B4: each thumb drag leaves another window listener behind, so later drags
-// pan further.
+// Each thumb drag used to leave another window listener behind, so later
+// drags panned further.
 test("scrollbar drag pans the same distance every time", async () => {
   const { host, node } = await renderCanvas({
     scrollBarConfig: { renderScrollBar: true },
