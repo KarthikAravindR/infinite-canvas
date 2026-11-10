@@ -1,45 +1,8 @@
-import { useEffect, useState } from "react";
-
 import {
   BLOCK_EVENTS_CLASS,
   SCROLL_NODE_POSITIONS,
   ZOOM_CONFIGS,
 } from "./constants";
-
-export const useOnScreen = (
-  ref: { current: Element },
-  { rootMargin = "0px", triggerOnce = false } = {},
-) => {
-  const [isIntersecting, setIntersecting] = useState(false);
-
-  useEffect(function scrollObserve() {
-    const element = ref.current;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry) return;
-        // Update our state when observer callback fires
-        setIntersecting(entry.isIntersecting);
-        if (entry.isIntersecting && triggerOnce) {
-          observer.unobserve(element);
-        }
-      },
-      {
-        rootMargin,
-      },
-    );
-    if (element) {
-      observer.observe(element);
-    }
-    return () => {
-      if (element) {
-        observer.unobserve(element);
-      }
-    };
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
-  }, []);
-
-  return isIntersecting;
-};
 
 export const clampValue = ({
   value,
